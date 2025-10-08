@@ -1,0 +1,25 @@
+TO INSTALL dotenv:
+
+Step 1: (Optional but recomended) Create a virtual environment
+python -m venv venv_name
+
+Step 2: Activate the virtual environment
+On macOS/Linux:
+source venv_name/bin/activate
+
+On Windows (PowerShell):
+venv_name\Scripts\Activate.ps1
+
+On Windows (Command Prompt):
+venv_name\Scripts\activate.bat
+
+Step 3: Install python-dotenv
+pip install python-dotenv
+
+Done! If VS Code asks to create or use a virtual environment, choose "Yes".
+
+If you make a virtual environment, install everyting in there and run your code form there
+
+TO INSTALL BCRYPT:
+
+pip install bcrypt
