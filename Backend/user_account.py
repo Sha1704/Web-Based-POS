@@ -27,7 +27,7 @@ class Account:
         :return: Tuple (True, encryption_key) if successful, (False, None) otherwise
         """
 
-        pass
+        print('Hello World')
 
     def log_out(self): # Azul
                 """
