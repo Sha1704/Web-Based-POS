@@ -1,4 +1,4 @@
-import security # for password hashing
+import Backend.password_security as password_security # for password hashing
 
 class Account:
     
