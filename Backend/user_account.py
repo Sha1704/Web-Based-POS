@@ -6,6 +6,13 @@ class Account:
     Handles user account management: creation, login, logout, password reset/changes.
     """
 
+    def __init__(self, database):
+           """
+           Initialize the account instance with a backend database and security handler
+           """
+           self.database = database
+           self.security = password_security.Security()
+    
     def create_account(self, email, password): # Shalom
         """
         Creates a new user account and stores hashed password.
@@ -26,8 +33,21 @@ class Account:
         :param password: password to verify
         :return: Tuple (True, encryption_key) if successful, (False, None) otherwise
         """
-
-        print('Hello World')
+        # check if user exists
+        user_data = self.database.run_query(email)
+        if not user_data:
+               print("Login failed: Email not found.")
+               return False, None
+        stored_hashed_password, role = user_data
+        # verify password
+        if self.security.verify_hashed_password(password, stored_hashed_password):
+               print(f"Login successful. Role: {role}")
+               # placeholder for encryption 
+               encryption_key = f"key_for_{email}"
+               return True, encryption_key
+        else:
+               print("Login failed: Incorrect password.")
+               return False, None
 
     def log_out(self): # Azul
                 """
