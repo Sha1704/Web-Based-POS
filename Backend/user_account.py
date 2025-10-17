@@ -33,6 +33,12 @@ class Account:
         :return: True if user created, False otherwise
         """
         try:
+
+            email = email.strip().lower()
+            user_type = user_type.strip().lower()
+            security_question = security_question.strip()
+            security_answer = security_answer.strip().lower()
+
             # Check if email already exists
             email_query = 'SELECT email FROM user WHERE email = %s'
             email_exists = backend.run_query(email_query, (email,))
@@ -45,13 +51,14 @@ class Account:
                 query = 'INSERT INTO user (email, password_hash, user_type, security_question, security_answer) VALUES (%s, %s, %s, %s, %s);'
 
                 hashed_password = security.hash_data(password)
-                hashed_security_answer = security.hash_data(security_answer.lower())
+                hashed_security_answer = security.hash_data(security_answer)
 
-                backend.run_query(query, (email.lower(), hashed_password, user_type.lower(), security_question, hashed_security_answer))
+                backend.run_query(query, (email, hashed_password, user_type, security_question, hashed_security_answer))
 
                 return True
         except Exception as e:
             print(f"An error occurred: {e}")
+            return False
 
     def log_in(self, email, password, ): # Dariya
 
@@ -85,32 +92,31 @@ class Account:
                 False otherwise.
                 """
                 try:
-                    email_query = 'SELECT email FROM user WHERE email = %s'
-                    email_exists = backend.run_query(email_query, (email,))
+                    email = email.strip().lower()
+                    security_answer = security_answer.strip().lower()
 
-                    if email_exists:
-                        question_query = 'SELECT security_answer FROM user WHERE email = %s'
-                        answer_hash = backend.run_query(question_query, (security_answer,))
+                    question_query = 'SELECT security_answer FROM user WHERE email = %s'
+                    result = backend.run_query(question_query, (email,))
+                    
+                    if not result:
+                        return False
+                    
+                    answer_hash = result[0][0]
+                    same_answer = security.verify_hashed_data(security_answer, answer_hash)
 
-                        same_answer = security.verify_hashed_data(security_answer, answer_hash)
+                    if same_answer:
+                        hashed_new_password = security.hash_data(new_password)
 
-                        if same_answer:
-                            hashed_new_password = security.hash_data(new_password)
+                        add_password_query = 'update user set password_hash = %s where email = %s'
+                        password_replaced = backend.run_query(add_password_query, (hashed_new_password, email))
 
-                            add_password_query = 'update user set password_hash = %s where email = %s'
-                            password_replaced = backend.run_query(add_password_query, (hashed_new_password, email))
-
-                            if password_replaced:
-                                return True
-                            else:
-                                return False
-                        else:
-                            return False
+                        return bool(password_replaced)
                     else:
-                         return False
+                        return False
                     
                 except Exception as e:
                     print(f"An error occurred: {e}")
+                    return False
     
     def get_security_question(self, email): # Shalom
          
@@ -122,10 +128,12 @@ class Account:
         """
         
         try:
+           email = email.strip().lower()
            security_question_query = 'select security_question from user where email = %s'
            question = backend.run_query(security_question_query, (email,))
 
-           return question
+           return question[0][0] if question else False
         
         except Exception as e:
            print(f"An error occurred: {e}")
+           return False

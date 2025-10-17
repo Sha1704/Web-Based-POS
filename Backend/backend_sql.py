@@ -27,8 +27,13 @@ class Backend:
 
         :param query: SQL query string
         :param params: Optional tuple of parameters for parameterized queries
-        :return: Query result or True/False for success/failure
+        :return:
+            - list: For SELECT queries that return rows.
+            - []: For SELECT queries with no results.
+            - True: For successful INSERT, UPDATE, or DELETE queries (regardless of affected rows).
+            - None: If a database or programming error occurs.
         """
+
         data_base = None
         cursor = None
 
@@ -50,26 +55,22 @@ class Backend:
                     return results
                 else:
                     print('No results found')
-                    return False
+                    return []
 
             # Handle INSERT, UPDATE, DELETE queries
             if query.strip().upper().startswith(("INSERT", "UPDATE", "DELETE")):
                 data_base.commit()
-                # Return True if rows affected, else False
-                if cursor.rowcount == 0:
-                    return False
-                else:
-                    return True
+                return True
                 
         except ProgrammingError as pe:
             print(f'Programing error: {pe}')
-            return False
+            return None
         except Error as e:
             print(f'An error occured: {e}')
-            return False
+            return None
         finally:
             # Clean up database resources
             if cursor is not None:
                 cursor.close()
             if data_base is not None and data_base.is_connected():
-                data_base.close()
+                data_base.close()   
