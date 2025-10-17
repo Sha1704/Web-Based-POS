@@ -1,5 +1,5 @@
-from backend_sql import Backend as sql
-from user_account import Account as acc
+from data.backend_sql import Backend as sql
+from Backend.user_account import Account as acc
 from dotenv import load_dotenv # you have to import dotenv (see dependencies.txt file)
 import os
 
