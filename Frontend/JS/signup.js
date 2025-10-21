@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Home button
     home.addEventListener("click", () => {
-        window.location.href = "index.html";
+        window.location.href = "../HTML/index.html";
     });
 
     //Password strength checker
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
             message.textContent = "Account created successfully!";
             // Redirect
             setTimeout(() => {
-                window.location.href = "login.html";
+                window.location.href = "../HTML/login.html";
             }, 1000);
         }, 1000);
 

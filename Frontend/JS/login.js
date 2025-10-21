@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Redirect to homepage
     home.addEventListener("click", () => {
-        window.location.href = "index.html";
+        window.location.href = "../HTML/index.html";
     });
 
     //Test for no backend
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 message.textContent = "Login successful!";
                 // Redirect
                 setTimeout(() => {
-                     window.location.href = "index.html";
+                     window.location.href = "../HTML/index.html";
                  }, 1000);
             } else {
                 message.style.color = "red";

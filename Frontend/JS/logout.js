@@ -6,5 +6,5 @@ document.addEventListener("DOMContentLoaded", () => {
     logout.addEventListener("click", () => {
         
         //Refresh homepage after logout
-        window.location.href = "index.html";
+        window.location.href = "../HTML/index.html";
     })
