@@ -23,3 +23,11 @@ If you make a virtual environment, install everyting in there and run your code 
 TO INSTALL BCRYPT:
 
 pip install bcrypt
+
+TO INSTALL MYSQL:
+
+pip install mysql-connector-python
+
+TO INSTALL BOTO3 AND REQUESTS (for constantly changing ip)
+
+pip install boto3 requests
