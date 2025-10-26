@@ -35,7 +35,7 @@ class Account:
                     return true
                 return false
 
-                #comment
+                #hello
                 """
                 Terminates the current user session.
                 
