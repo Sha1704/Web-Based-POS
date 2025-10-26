@@ -30,8 +30,13 @@ class Account:
         pass
 
     def log_out(self): # Azul
+                if self active:
+                    self active = false
+                    return true
+                return false
                 """
                 Terminates the current user session.
+                
 
                 Returns:
                 - True if a session was active and was successfully terminated.
