@@ -34,6 +34,8 @@ class Account:
                     self active = false
                     return true
                 return false
+
+                #comment
                 """
                 Terminates the current user session.
                 
