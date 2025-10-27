@@ -1,5 +1,5 @@
 import Backend.password_security as password_security # for password hashing
-import backend_sql as sql # for sql queries
+from data import backend_sql as sql # for sql queries
 from dotenv import load_dotenv
 import os
 
