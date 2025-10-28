@@ -73,15 +73,22 @@ class Account:
         pass
 
     def log_out(self): # Azul
-                """
-                Terminates the current user session.
+        """
+        Checks if user is logged in and database is active. Terminates and clears the current user session.  
+        Returns:
+            - True if a session was active and was successfully terminated.
+            - False if there was no active session.
+        """
+        if self.active:
+            self.active = False
+            self.current_user = None
 
-                Returns:
-                - True if a session was active and was successfully terminated.
-                - False if there was no active session.
-                """
-
-                pass
+            if self.backend:
+                self.backend.close_connection()
+            return True
+        else:
+             return False
+            
 
     def password_reset(self, email, new_password, security_answer): # Shalom
                 """
