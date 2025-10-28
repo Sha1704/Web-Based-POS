@@ -1,2 +1,4 @@
 .env
 pos/
+.DS_Store
+database.sql
