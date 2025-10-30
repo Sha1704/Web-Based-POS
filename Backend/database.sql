@@ -29,6 +29,14 @@ CREATE TABLE customer (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE admin (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_code VARCHAR(20) NOT NULL
+);
+
+-- admin code
+INSERT INTO admin (admin_code) VALUES ('1234');
+
 -- add security question and answer to user table
 ALTER TABLE user
 ADD COLUMN security_question VARCHAR(250) not Null;
