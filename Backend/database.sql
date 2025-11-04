@@ -34,3 +34,22 @@ ALTER TABLE user
 ADD COLUMN security_question VARCHAR(250) not Null;
 ALTER TABLE user
 ADD COLUMN security_answer VARCHAR(250) not Null;
+
+-- Transaction table
+CREATE TABLE transaction (
+    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_email VARCHAR(100),
+    total DECIMAL(6,2) NOT NULL,
+    tip_amount DECIMAL(5,2) DEFAULT 0,
+    status ENUM('Active', 'Completed', 'Voided') DEFAULT 'Active',
+    FOREIGN KEY (customer_email) REFERENCES customer(email)
+);
+
+-- Payment Method table (cash, card)
+CREATE TABLE payment_method (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id INT NOT NULL,
+    payment_type VARCHAR (30) NOT NULL, 
+    amount DECIMAL (5,2) NOT NULL,
+    FOREIGN KEY (transaction_id) REFERENCES transaction(transaction_id)
+);
