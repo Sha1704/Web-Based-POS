@@ -74,3 +74,5 @@ ALTER TABLE user
 ADD COLUMN admin_code INT;
 ALTER TABLE user
 ADD COLUMN employee_code INT;
+ALTER TABLE receipt
+ADD COLUMN note VARCHAR(250);

@@ -15,7 +15,8 @@ database = os.getenv("DB_DATABASE")
 backend = sql.Backend(database_host, database_user, database_password, database)
 security = password_security.Security()
 
-
+# Ensure correct database is used
+backend.run_query('use password_manager;')
 
 class Account:
     
