@@ -2,6 +2,7 @@ import Backend.password_security as password_security # for password hashing
 from data import backend_sql as sql # for sql queries
 from dotenv import load_dotenv
 import os
+import random # for generating ID's
 
 
 load_dotenv()
@@ -50,11 +51,41 @@ class Account:
             else:
                 # Insert new user
                 query = 'INSERT INTO user (email, password_hash, user_type, security_question, security_answer) VALUES (%s, %s, %s, %s, %s);'
-
                 hashed_password = security.hash_data(password)
                 hashed_security_answer = security.hash_data(security_answer)
-
                 backend.run_query(query, (email, hashed_password, user_type, security_question, hashed_security_answer))
+
+                # Assign code/id based on user type
+                if user_type.lower() == 'c':
+                    while True:
+                        customer_id = f"{random.randint(0, 9999):04d}"
+                        validation_query = 'SELECT customer_id FROM user WHERE customer_id = %s'
+                        result = backend.run_query(validation_query, (customer_id,))
+                        if not result:
+                            break
+                    update_query = 'UPDATE user SET customer_id = %s WHERE email = %s'
+                    backend.run_query(update_query, (customer_id, email))
+                elif user_type.lower() == 'a':
+                    while True:
+                        admin_code = f"{random.randint(0, 9999):04d}"
+                        validation_query = 'SELECT admin_code FROM user WHERE admin_code = %s'
+                        result = backend.run_query(validation_query, (admin_code,))
+                        if not result:
+                            break
+                    update_query = 'UPDATE user SET admin_code = %s WHERE email = %s'
+                    backend.run_query(update_query, (admin_code, email))
+                elif user_type.lower() == 'e':
+                    while True:
+                        employee_code = f"{random.randint(0, 9999):04d}"
+                        validation_query = 'SELECT employee_code FROM user WHERE employee_code = %s'
+                        result = backend.run_query(validation_query, (employee_code,))
+                        if not result:
+                            break
+                    update_query = 'UPDATE user SET employee_code = %s WHERE email = %s'
+                    backend.run_query(update_query, (employee_code, email))
+                else:
+                    print('Invalid user type')
+                    return False
 
                 return True
         except Exception as e:
