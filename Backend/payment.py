@@ -88,17 +88,25 @@ class Payment:
         else:
             return False
 
-    def void_transaction(self, transaction_id): # Dariya
+    def void_transaction(self, transaction_id, admin_email, admin_code): # Dariya
         """
         Voids a transaction by marking it as canceled
+        Requires a valid admin code
 
         :param transaction_id: ID of transaction to void
+        :param admin_email: Admin email to verify
+        :param admin_code: Admin code to verify
         :return: True if transaction voided successfully, otherwise False
         """ 
         try:
+            admin_query = "SELECT admin_code FROM user WHERE email = %s AND user_type = 'Admin'"
+            result = backend.run_query(admin_query, (admin_email,))
+            if not result or admin_code != result[0][0]:
+                return False
+            
             void_query = "Update transaction SET status = 'Voided' WHERE transaction_id = %s"
             backend.run_query(void_query, (transaction_id,))
-            print(f"Transaction {transaction_id} has been voided.")
+            print(f"Transaction {transaction_id} has been voided by {admin_email}.")
             return True
         
         except Exception as e:
