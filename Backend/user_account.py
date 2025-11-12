@@ -24,7 +24,7 @@ class Account:
     """
     Handles user account management: creation, login, logout, password reset/changes.
     """
-
+    
     def create_account(self, email, password, user_type, security_question, security_answer): # Shalom
         """
         Creates a new user account and stores hashed password.
@@ -92,17 +92,36 @@ class Account:
             print(f"An error occurred: {e}")
             return False
 
-    def log_in(self, email, password, ): # Dariya
+    def log_in(self, email, password): # Dariya
 
         """
         Authenticates a user by verifying the password.
 
         :param email: email to log in
         :param password: password to verify
-        :return: Tuple (True, encryption_key) if successful, (False, None) otherwise
+        :return: Tuple (True, None) if successful, (False, None) otherwise
         """
+        try:
+            email = email.strip().lower()
+            user_query = 'SELECT password_hash, user_type FROM user WHERE email = %s'
+            user_data = backend.run_query(user_query, (email,))
 
-        pass
+            if not user_data:
+                print("Login failed: Email not found.")
+                return False, None
+            
+            store_hashed_password, role = user_data[0]
+
+            if security.verify_hashed_data(password, store_hashed_password):
+                 print(f"Login successful. Role: {role}")
+                 return True, None
+            else:
+                 print("Login failed: Incorrect password.")
+                 return False, None
+        
+        except Exception as e:
+             print(f"An error occurred during login: {e}")
+             return False, None
 
     def log_out(self): # Azul
         """
