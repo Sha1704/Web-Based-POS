@@ -19,25 +19,25 @@ class Payment:
     def add_payment_method(self): # Dariya
         pass
     
-    def split_payment(self, total): # Azul
+    def split_payment(self, receiptID, numPeople): # Azul
         """asks for the number of people splitting and it checks to see if it's greater than zero.
-        then it calculates each persons total and prints it"""
-        split = int(input("How many people are splitting? "))
-        
+        then it calculates each persons total and prints it"""        
         #checks if not zero
-        while split <= 0:
-            split = int(input("Must be higher than zero. Try again. "))
+        if numPeople <= 0:
+            return "Must be higher than zero. Try again. "
+
+        #get total from receipt
+        try:
+            query = "SELECT total_amount FROM receipt WHERE receipt_id = %s;"
+            result = backend.run_query(query, (receiptID,))
+            total = float(result[0][0])
+
+        except Exception as e:
+            print(f"Error finding receipt {e}")
 
         #splits total 
-        eachTotal = total/split
-        print(eachTotal)
-
-        #input data into database
-        try:
-            query = 'INSERT INTO payment (total, split_count) VALUES (%s, %s, %s);'
-            backend.run_query(query, (total, split))
-        except Exception as e:
-            print(f"Error recording split payment: {e}")
+        eachTotal = total/numPeople
+        return eachTotal
 
     def apply_discounts(self): # Shalom
         pass
@@ -45,20 +45,34 @@ class Payment:
     def add_tips(self): # Dariya
         pass
 
-    def add_item_to_bill(self, bill, name, price, quantity): # Azul
+    def add_item_to_bill(self, receiptID, item, price, quantity): # Azul
         #if item is already on bill, it updates quantity. If not it adds new item
-        if name in bill:
-            bill[name]["quantity"] += quantity
-        else:
-            bill[name] = {"price": price, "quantity": quantity}
-        
-        #add to database
         try:
-            query = 'INSERT INTO payment_item (item_name, price, quantity) VALUES (%s, %s, %s);'
-            backend.run_query(query, (name, price, quantity))
+            query = "SELECT item_id FROM inventory_item WHERE item = %s;"
+            result = backend.run_query(query, (item,))
+            if not result:
+                print(f"Item '{item}' not found in inventory.")
+                return
+            item_id = result[0][0] 
+
+            query = "SELECT quantity FROM receipt_item WHERE receipt_id = %s AND item_id = %s;"
+            result = backend.run_query(query, (receiptID, item_id))
             
+            #update quantity in receipt
+            if result:
+                quantity = result[0][0] + quantity
+                query = "UPDATE receipt_item SET quantity = %s WHERE receipt_id = %s AND item_id = %s;"
+                backend.run_query(query, (quantity, receiptID, item_id))
+                print(f"Updated {item} quantity to {quantity} for receipt {receiptID}.")
+            #create item into receipt
+            else:
+                query = "INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price) VALUES (%s, %s, %s, %s);"
+                backend.run_query(query, (receiptID, item_id, quantity, price))
+                print(f"Added {quantity} x {item} to receipt {receiptID}.")
+
         except Exception as e:
             print(f"Error adding item to SQL: {e}")
+        
 
     def remove_item_from_bill(self): # Shalom
         pass
@@ -66,24 +80,21 @@ class Payment:
     def void_transaction(self): # Dariya
         pass
 
-    def approve_voided_transaction(self, bill): # Azul
+    def approve_voided_transaction(self, receiptID, adminEmail, code): # Azul
         try:
             """asks for code input, then retrieves code from database and compares. After confirmation it asks to approve void and ends transaction if yes"""
-            # Ask for admin code
-            entered_code = input("Enter admin code: ")
+            # Get for admin code
+            try:
+                query = "SELECT admin_code FROM user WHERE email = %s AND user_type = 'Admin';"
+                result = backend.run_query(query, (adminEmail,))
 
-            # Retrieve admin code from database
-            query = "SELECT admin_code FROM admin LIMIT 1;"  # assuming you have an admin table
-            result = backend.run_query(query)
+            except Exception as e:
+                print(f"Error find query in SQL: {e}")
 
-            if not result:
-                print("No admin code found in database.")
-                return False
-
-            correct_code = str(result[0][0]) #get code from database and converts it to string
+            correct = str(result[0][0])
 
             # Compare codes
-            if entered_code != correct_code:
+            if code != correct:
                 print("Incorrect admin code. Void not approved.")
                 return False
 
@@ -94,9 +105,9 @@ class Payment:
                 return False
 
             # Cancel transaction in database
-            cancel_query = "DELETE FROM payment WHERE payment_id = %s;"
-            backend.run_query(cancel_query, (bill))
-            print(f"Transaction {bill} canceled successfully.")
+            query = "DELETE FROM receipt WHERE receiptID = %s;"
+            backend.run_query(query, (receiptID,))
+            print(f"Transaction {receiptID} canceled successfully.")
             return True
 
         except Exception as e:
