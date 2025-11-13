@@ -128,17 +128,15 @@ class Account:
         Checks if user is logged in and database is active. Terminates and clears the current user session.  
         Returns:
             - True if a session was active and was successfully terminated.
-            - False if there was no active session.
+            - Error if could not end.
         """
-        if self.active:
-            self.active = False
-            self.current_user = None
-
-            if self.backend:
-                self.backend.close_connection()
+        try:
+            backend.close_connection()
+            print("Database session ended. Logged out successfully.")
             return True
-        else:
-             return False
+        except Exception as e:
+            print(f"Error during logout: {e}")
+            return False
             
 
     def password_reset(self, email, new_password, security_answer): # Shalom
