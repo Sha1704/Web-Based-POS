@@ -95,3 +95,13 @@ ALTER TABLE user
 ADD COLUMN employee_code INT;
 ALTER TABLE receipt
 ADD COLUMN note VARCHAR(250);
+
+-- Points Redeem Setting Table
+-- Stores the point to cash ratio for loyalty redemption
+-- Insert default points to cash ratio
+CREATE TABLE points_redeem_setting (
+    settingName VARCHAR(50) PRIMARY KEY,
+    settingValue DECIMAL(10,2) NOT NULL
+);
+INSERT INTO points_redeem_setting (settingName, settingValue)
+VALUES ('point_to_cash', 0.01);

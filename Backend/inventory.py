@@ -1,7 +1,43 @@
+from data import backend_sql as sql # for sql queries
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv()
+
+database_host = os.getenv("DB_HOST")
+database_user = os.getenv("DB_USER")
+database_password = os.getenv("DB_PASSWORD")
+database = os.getenv("DB_DATABASE")
+
+# Create backend database handler
+backend = sql.Backend(database_host, database_user, database_password, database)
+
+# Ensure correct database is used
+backend.run_query('use web_based_pos;')
+
 class Inventory:
-    
-    def track_inventory(self): # Dariya
-        pass
+    def track_inventory(self, lowStock_limit=4): # Dariya
+        """
+        Retrieve inventory items and prints low stock alerts
+        :param lowStock_limit: quantity at or below which a stock alert is raised
+        """
+        try:
+            query = "SELECT item_id, item_name, quantity, price, category FROM inventory_item"
+            items = backend.run_query(query)
+            if not items:
+                print("No items found in the inventory.")
+                return []
+            print("Inventory Stock:")
+            for item in items:
+                alert = " LOW STOCK!!" if item['quantity'] <= lowStock_limit else ""
+                print(f"ID: {item['item_id']}, Name: {item['item_name']}, "
+                      f"Qty: {item['quantity']}, Price: ${item['price']}, "
+                      f"Category: {item['category']}{alert}")
+            return items
+        except Exception as e:
+            print(f"Error fetching inventory: {e}")
+            return []
 
     def add_to_inventory(self): # Azul
         pass
