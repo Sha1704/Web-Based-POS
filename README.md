@@ -3,10 +3,10 @@ IT 326 001 Fall 2025’s Web-Based POS system built as a semester-long group pro
 
 ![Software Architecture Diagram](MVC.png)
 
-#Software Architecture Overview
+# Software Architecture Overview
 This project uses a combination of Model-View-Controller and N-Tiered layered architecture to organize the system.  It is divided into three main layers, the Presentation Layer (View), the Application/Controller Layer, and the Backend/Data Layer (Model + Data Access).  
 
-#Layer 1: Presentation Layer (Frontend)
+# Layer 1: Presentation Layer (Frontend)
 Folders: /Frontend/HTML, /Frontend/JS
 
 This layer implements the View portion of MVC, it contains:
@@ -19,12 +19,12 @@ CSS Stylesheets: index.css, account.css, bill.css
 
 The Presentation Layer does not contain business logic.  Its responsibility is to gather input, display output, and forward actions to main.py.
 
-#Layer 2: Application / Controller Layer
+# Layer 2: Application / Controller Layer
 Folder: /application
 
 The main.py module acts as the Controller of the MVC design.  It routes incoming requests from the frontend and coordinates all business operations.
 
-#Layer 3: Backend / Data Layer
+# Layer 3: Backend / Data Layer
 Folders: /Backend, /data
 
 This layer represents the Model portion of MVC along with the Data Access layer.  It contains both business logic modules and database interaction code.
@@ -44,7 +44,7 @@ database.sql - contains schema definitnons and intial data
 
 These components abstract actual SQL operations, ensuring business logic modules do not need to directly interact with SQL.
 
-#How the Layers Communicate
+# How the Layers Communicate
 Frontend Javascript (Layer 1) sends user actions to main.py (Layer 2).
 main.py (Layer 2) processes the request and calls the appropriate Backend module (Layer 3).
 Backend business logic (Layer 3) reads/writes data using backend_sql.py and the tables defined in database.sql.
