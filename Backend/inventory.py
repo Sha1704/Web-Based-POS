@@ -24,7 +24,7 @@ class Inventory:
         """
         try:
             query = "SELECT item_id, item_name, quantity, price, category FROM inventory_item"
-            items = backend.run_query(query)
+            items = backend.run_query(query,)
             if not items:
                 print("No items found in the inventory.")
                 return []
