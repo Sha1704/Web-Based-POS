@@ -59,8 +59,44 @@ class Inventory:
             return False
 
 
-    def update_product_count(self): # Shalom
-        pass
+    def update_product(self,product_name, price, quantity, category): # Shalom
+        '''
+        update product's price, quantity and category
+        returns true or false based on successful update
+        '''
+        try:
+            query = 'UPDATE inventory_item SET price = %s, quantity = %s, category = %s WHERE item_name = %s'
 
-    def find_product(self): # Shalom
-        pass
+            result = backend.run_query(query, (price, quantity, category, product_name))
+
+            if not result:
+                return False
+            
+            if result:
+                return True
+            
+        except Exception as e:
+            print(f"An exception occoured {e}")
+            return False
+
+    def find_product(self, item_name): # Shalom
+        '''
+        Finds item in inventory using item name
+        returns the id, price and quantity left
+        '''
+        
+        try:
+            query = "SELECT item_id, price, quantity FROM inventory_item WHERE item_name = %s"
+
+            result = backend.run_query(query,(item_name,))
+
+            if not result:
+                return None
+            
+            id, price, quantity = result[0]
+
+            return id, price, quantity
+        
+        except Exception as e:
+            print(f"An exception occoured {e}")
+            return None
