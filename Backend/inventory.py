@@ -100,3 +100,9 @@ class Inventory:
         except Exception as e:
             print(f"An exception occoured {e}")
             return None
+        
+    def add_categories(self): #Shalom
+        pass
+
+    def add_item_to_category(self): #Shalom
+        pass

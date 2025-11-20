@@ -41,4 +41,12 @@ class Customer:
             "message": f"Redeemed {points_to_redeem} points",
             "remaining_points": new_points
         }
- 
+    
+    def order_ahead(self): # Dariya
+        pass
+
+    def rate_item(self): #Dariya
+        pass
+
+    def give_feedback(self): #Azul
+        pass
