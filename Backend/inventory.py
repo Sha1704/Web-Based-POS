@@ -101,8 +101,27 @@ class Inventory:
             print(f"An exception occoured {e}")
             return None
         
-    def add_categories(self): #Shalom
-        pass
+    def add_categories(self, category_name): #Shalom
+        query = "INSERT INTO category (category_name) VALUES(%s)"
+        inserted = backend.run_query(query,(category_name))
 
-    def add_item_to_category(self): #Shalom
-        pass
+        if inserted:
+            return True
+        else:
+            return False
+
+    def add_item_to_category(self, item_ID, category): #Shalom
+
+        item_query = "SELECT item_id FROM inventory_item WHERE item_id = %s"
+
+        item_present = backend.run_query(item_query, (item_ID))
+
+        if item_present:
+            add_query = "UPDATE inventory_item SET category_id = %s WHERE item_id = %s"
+            added = backend.run_query(add_query,(category, item_ID))
+            if added:
+                return True
+            else:
+                return False
+        else:
+            return False

@@ -17,7 +17,10 @@ CREATE TABLE inventory_item (
     item_name VARCHAR(50) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     quantity INT NOT NULL,
-    category VARCHAR(50) NOT NULL
+    category_id INT NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES category(category_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
 );
 
 -- Customer table
@@ -32,7 +35,7 @@ CREATE TABLE customer (
 
 CREATE TABLE receipt (
     receipt_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_email VARCHAR(100),
+    customer_email VARCHAR(100) NULL,
     total_amount DECIMAL(10,2) DEFAULT 0,
     amount_due DECIMAL(10,2) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -79,6 +82,8 @@ CREATE TABLE transaction (
     tip_amount DECIMAL(5,2) DEFAULT 0,
     status ENUM('Active', 'Completed', 'Voided') DEFAULT 'Active',
     FOREIGN KEY (customer_email) REFERENCES customer(email)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
 );
 
 -- Payment Method table (cash, card)
@@ -89,6 +94,13 @@ CREATE TABLE payment_method (
     amount DECIMAL (5,2) NOT NULL,
     FOREIGN KEY (transaction_id) REFERENCES transaction(transaction_id)
 );
+
+-- category table
+CREATE TABLE category (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(50) UNIQUE NOT NULL
+);
+
 ALTER TABLE user
 ADD COLUMN admin_code INT;
 ALTER TABLE user
