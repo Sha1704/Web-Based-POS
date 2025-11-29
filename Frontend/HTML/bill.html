@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <link rel="stylesheet" href="../bill.css">
+</head>
+
+<body>
+    <div id="pos-container" style="display: flex; gap: 20px;">
+
+        <!-- Left Column for Add Items & Bill -->
+        <div id="left-column" style="flex: 2;">
+            <h2>POS System</h2>
+
+            <h3>Add Items</h3>
+            <select id="item-select">
+                <option value="">-- Select an item --</option>
+            </select>
+            <h4>Quantity</h4>
+            <input type="number" id="item-qty" placeholder="Quantity" min="1" value="1">
+            <button onclick="addItem()">Add Item</button>
+
+            <table id="bill-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Right Column for money -->
+        <div id="right-column" style="flex: 1;">
+            <div id="total-container">
+                <h3>Summary</h3>
+                <div id="total">Total: $0.00</div>
+            </div>
+
+            <h3>Add Tip & Discount</h3>
+            <p>Tip</p>
+            <input type="number" id="tip" placeholder="Tip amount" step="0.01">
+            <p>Discount Code</p>
+            <input type="text" id="coupon" placeholder="Promo code">
+            <button onclick="updateBill()">Add Tip and Discount</button>
+
+
+            <h3>Split Payment</h3>
+            <label>
+                <input type="checkbox" id="enable-split" onchange="toggleSplit()"> Enable Split Payment
+            </label>
+            <div id="split-container" style="display:none; margin-top:10px;">
+                <label>
+                    Number of People:
+                    <input type="number" id="num-people" min="2" value="2" onchange="generateSplitInputs()">
+                </label>
+                <br><br>
+
+                <div id="split-buttons" style="display:flex; gap:10px; margin-bottom:10px;">
+                    <button type="button" onclick="setSplitType('equal')">Split Evenly</button>
+                    <button type="button" onclick="setSplitType('percent')">Percent</button>
+                    <button type="button" onclick="setSplitType('amount')">Amount</button>
+                </div>
+
+                <div id="split-inputs" style="margin-top:10px;"></div>
+            </div>
+
+            <h3>Select Payment Method</h3>
+            <select id="payment-method">
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="mobile">Mobile Pay</option>
+            </select>
+            <button onclick="completePayment()">Pay</button>
+        </div>
+
+    </div>
+
+    <script src="../JS/bill.js"></script>
+</body>
+
+</html>
