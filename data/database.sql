@@ -89,7 +89,7 @@ CREATE TABLE transaction (
 -- Payment Method table (cash, card)
 CREATE TABLE payment_method (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    transaction_id INT NOT NULL,
+    transaction_id INT NULL,
     payment_type VARCHAR (30) NOT NULL, 
     amount DECIMAL (5,2) NOT NULL,
     FOREIGN KEY (transaction_id) REFERENCES transaction(transaction_id)
@@ -109,3 +109,31 @@ ALTER TABLE receipt
 ADD COLUMN note VARCHAR(250);
 ALTER TABLE inventory_item
 ADD COLUMN tax_rate DECIMAL(10,2) DEFAULT 0.00;
+
+-- add receipt_id to payment_method and link it to receipt
+ALTER TABLE payment_method
+ADD COLUMN receipt_id INT,
+ADD FOREIGN KEY (receipt_id) REFERENCES receipt(receipt_id)
+    ON DELETE CASCADE;
+
+-- add receipt_id to transaction and link it to receipt as well
+ALTER TABLE transaction
+ADD COLUMN receipt_id INT,
+ADD FOREIGN KEY (receipt_id) REFERENCES receipt(receipt_id)
+    ON DELETE CASCADE;
+
+-- Ratings table
+-- (unique key to prevent duplicate ratings per customer per item)
+CREATE TABLE item_rating(
+    rating_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_email VARCHAR(100) NOT NULL,
+    item_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    review VARCHAR(250),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_email) REFERENCES customer(email)
+        ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
+        ON DELETE CASCADE,
+    UNIQUE KEY unique_rating (customer_email, item_id)
+);

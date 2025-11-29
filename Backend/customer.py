@@ -101,8 +101,36 @@ class Customer:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    def rate_item(self): #Dariya
-        pass
+    def rate_item(self, customer_email, item_name, rating): #Dariya
+        """
+        Allows a customer to rate an item (1-5 stars)
+        :param customer_email: email of customer
+        :param item_name: name of the inventory item
+        :param rating: integer rating from 1-5
+        """
+        try:
+            if rating < 1 or rating > 5:
+                return {"success": False, "message": "Rating must be between 1 and 5"}
+            if not backend.run_query("SELECT email FROM customer WHERE email = %s;", (customer_email,)):
+                return {"success": False, "message": "Customer not found"}
+            # get item_id from name
+            result = backend.run_query("SELECT item_id FROM inventory_item WHERE item_name = %s;", (item_name,))
+            if not result:
+                return {"success": False, "message": "Item not found"}
+            item_id = result[0][0]
+            # update and insert the rating
+            existing = backend.run_query(
+                "SELECT rating_id FROM item_rating WHERE customer_email = %s AND item_id = %s;", (customer_email,item_id))
+            if existing:
+                backend.run_query("UPDATE item_rating SET rating = %s, created_at = CURRENT_TIMESTAMP WHERE rating_id = %s;",
+                                  (rating, existing[0][0]))
+                return {"success": True, "message": "Rating updated successfully"}
+            else:
+                backend.run_query("INSERT INTO item_rating (customer_email, item_id, rating) VALUES (%s, %s, %s);",
+                                  (customer_email, item_id, rating))
+                return {"success": True, "message": "Rating added successfully"}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
 
     def give_feedback(self): #Azul
         pass
