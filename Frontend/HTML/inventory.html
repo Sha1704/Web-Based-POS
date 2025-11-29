@@ -1,0 +1,52 @@
+<!--Using fetch so no normal html headers-->
+<div class="inventory-container">
+
+    <!-- Search -->
+    <div class="mb-3">
+        <input type="text" id="inventory-search" class="form-control" placeholder="Search inventory...">
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card mb-3">
+        <div class="card-header bg-secondary text-white">Inventory</div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-body">
+                    <!-- inventory rows will go here from JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Product Button -->
+    <button class="btn btn-primary mb-3" id="add-product-btn">+ Add New Product</button>
+
+    <!-- Add Product Form (hidden by default) -->
+    <div id="add-product-form" class="card p-3 d-none">
+        <div class="mb-3">
+            <label class="form-label">Item Name:</label>
+            <input type="text" id="new-item-name" class="form-control" placeholder="Enter item name">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Quantity:</label>
+            <input type="number" id="new-item-qty" class="form-control" min="0">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Price:</label>
+            <input type="number" id="new-item-price" class="form-control" min="0" step="0.01">
+        </div>
+
+        <button class="btn btn-success" id="save-new-product">Save Product</button>
+    </div>
+
+</div>

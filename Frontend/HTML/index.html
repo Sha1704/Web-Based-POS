@@ -59,6 +59,7 @@
                   <a href="#" class="active"><i class="fa-solid fa-house me-2"></i>Home</a>
                   <a href="#"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
                   <a href="#"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
+                  <a href="#" onclick="showInventoryScreen(event)"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
                   <a href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a>
                   <a href="#"><i class="fa-solid fa-lock me-2"></i>Admin</a>
                 </nav>
@@ -124,6 +125,10 @@
                   <div id="sales-screen" class="screen d-none">
                     <h2>Sales Report</h2>
                     <p>Daily, weekly, and monthly reports.</p>
+                  </div>
+
+                  <div id="inventory-screen" class="screen d-none">
+                    <div id="inventory-content"></div>
                   </div>
             
                   <div id="settings-screen" class="screen d-none">
