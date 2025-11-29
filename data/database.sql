@@ -95,3 +95,5 @@ ALTER TABLE user
 ADD COLUMN employee_code INT;
 ALTER TABLE receipt
 ADD COLUMN note VARCHAR(250);
+ALTER TABLE inventory_item
+ADD COLUMN tax_rate DECIMAL(10,2) DEFAULT 0.00;
