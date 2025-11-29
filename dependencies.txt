@@ -31,3 +31,7 @@ pip install mysql-connector-python
 TO INSTALL BOTO3 AND REQUESTS (for constantly changing ip)
 
 pip install boto3 requests
+
+TO INSTALL FLASK (for connecting backend code to html)
+
+pip install FLASK
