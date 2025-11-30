@@ -24,6 +24,7 @@ function submitAdminCode() {
     const input = document.getElementById("admin-input").value;
 
     if (input === ADMIN_CODE) {
+        localStorage.setItem("adminUnlocked", "true");
         unlockAdminSections();
         closeAdminModal();
         alert("Admin access granted.");
