@@ -187,6 +187,25 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+  // === Customer Feedback ===
+  function showFeedbackScreen(event) {
+    event.preventDefault();
+    // Hide all other screens
+    document.querySelectorAll(".screen").forEach(s => s.classList.add("d-none"));
+
+    // Load feedback.html into the main content div
+    fetch('/Frontend/HTML/feedback.html')
+        .then(response => response.text())
+        .then(html => {
+            const feedbackScreen = document.getElementById("settings-screen");
+            feedbackScreen.innerHTML = html;
+            feedbackScreen.classList.remove("d-none");
+        })
+        .catch(err => console.error("Failed to load feedback screen:", err));
+}
+
+
   // ===== Bill System =====
   const billList = document.getElementById("bill-list");
   const billItemsTable = document.querySelector("#bill-items tbody");

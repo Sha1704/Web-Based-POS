@@ -52,15 +52,22 @@ function renderBill() {
     tbody.innerHTML = "";
 
     let subtotal = 0;
-    billItems.forEach(item => {
+
+    billItems.forEach((item, index) => {
         const row = document.createElement("tr");
         const itemTotal = item.qty * item.price;
         subtotal += itemTotal;
+
+        const starRating = [1,2,3,4,5].map(star => `
+            <span style="cursor:pointer;" onclick="rateBillItem(${index}, ${star})">⭐</span>
+        `).join("");
+
         row.innerHTML = `
             <td>${item.name}</td>
             <td>${item.qty}</td>
             <td>$${item.price.toFixed(2)}</td>
             <td>$${itemTotal.toFixed(2)}</td>
+            <td>${starRating}</td>
         `;
         tbody.appendChild(row);
     });
@@ -74,19 +81,50 @@ function renderBill() {
         `<div>Tax (2%): $${tax.toFixed(2)}</div>`
     ];
 
-    if (discount > 0) {
-        summaryLines.push(`<div>Discount: $${discount.toFixed(2)}</div>`);
-    }
+    if (discount > 0) summaryLines.push(`<div>Discount: $${discount.toFixed(2)}</div>`);
 
     summaryLines.push(`<div>Tip: $${tip.toFixed(2)}</div>`);
     summaryLines.push(`<div><strong>Total: $${total.toFixed(2)}</strong></div>`);
 
     document.getElementById("total-container").innerHTML = summaryLines.join("");
 
-    if (document.getElementById("enable-split").checked) {
-        generateSplitInputs();
-    }
+    if (document.getElementById("enable-split").checked) generateSplitInputs();
 }
+
+function rateBillItem(itemIndex, rating) {
+    if (!currentCustomerEmail) {
+        alert("Please select a customer first.");
+        return;
+    }
+
+    const itemName = billItems[itemIndex].name;
+
+    if (!rating) return;
+
+    fetch('/rate-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            customer_email: currentCustomerEmail,
+            item_name: itemName,
+            rating: parseInt(rating)
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(`You rated ${itemName} ${rating} star(s)!`);
+        } else {
+            alert(`Error: ${data.message}`);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to submit rating.");
+    });
+}
+
+
 
 // Tip & Discount
 function updateBill() {
