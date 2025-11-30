@@ -60,7 +60,7 @@
                     <!-- RECEIPT ID -->
                     <div class="mb-3">
                         <label for="oa-receipt-id"><strong>Order ID</strong></label>
-                        <input type="number" id="oa-receipt-id" class="form-control" placeholder="Enter Order ID">
+                        <input type="number" id="oa-receipt-id" name="oa-reciept-id" class="form-control" placeholder="Enter Order ID">
                     </div>
 
                         <h3 class="mb-2">Add Items</h3>
@@ -69,7 +69,7 @@
                             <option value="">-- Select an item --</option>
                         </select>
 
-                        <input type="number" id="oa-qty" class="form-control mb-3"
+                        <input type="number" id="oa-qty" name="oa-qty" class="form-control mb-3"
                                placeholder="Quantity" min="1" value="1">
 
                         <button class="btn btn-primary mb-4" onclick="oa_addItem()">Add Item</button>
@@ -97,7 +97,7 @@
                         </div>
 
                         <h4>Pickup Time</h4>
-                        <input type="time" id="oa-pickup-time" class="form-control mb-4">
+                        <input type="time" id="oa-pickup-time" name="oa-pickup-time" class="form-control mb-4">
 
                         <button class="btn btn-success w-100" onclick="oa_submitOrder()">Place Order</button>
                     </div>
