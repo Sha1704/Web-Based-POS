@@ -16,6 +16,25 @@
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
 
+    <!-- Inventory Table -->
+    <div class="card mb-3">
+        <div class="card-header bg-secondary text-white">Inventory</div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-body">
+                    <!-- inventory rows will go here from JS -->
+                </tbody>
+            </table>
+        </div>
     <link rel="stylesheet" href="../index.css">
 </head>
 <header>
@@ -67,7 +86,6 @@
                                 <th>Qty</th>
                                 <th>Price</th>
                                 <th>Category</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="inventory-body">
