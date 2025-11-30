@@ -101,8 +101,42 @@ class Customer:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    def rate_item(self): #Dariya
-        pass
+    def rate_item(self, customer_email, item_name, rating): #Dariya
+        """
+        Allows a customer to rate an item (1-5 stars) and updates the item's average rating
+        :param customer_email: email of customer
+        :param item_name: name of the inventory item
+        :param rating: integer rating from 1-5
+        """
+        try:
+            if rating < 1 or rating > 5:
+                return {"success": False, "message": "Rating must be between 1 and 5"}
+            if not backend.run_query("SELECT email FROM customer WHERE email = %s;", (customer_email,)):
+                return {"success": False, "message": "Customer not found"}
+            # get item_id from name
+            result = backend.run_query("SELECT item_id FROM inventory_item WHERE item_name = %s;", (item_name,))
+            if not result:
+                return {"success": False, "message": "Item not found"}
+            item_id = result[0][0]
+            # check if the customer already rated the item
+            existing = backend.run_query(
+                "SELECT rating_id FROM item_rating WHERE customer_email = %s AND item_id = %s;", (customer_email,item_id))
+            if existing:
+                backend.run_query("UPDATE item_rating SET rating = %s, created_at = CURRENT_TIMESTAMP WHERE rating_id = %s;",
+                                  (rating, existing[0][0]))
+            else:
+                backend.run_query("INSERT INTO item_rating (customer_email, item_id, rating) VALUES (%s, %s, %s);",
+                                  (customer_email, item_id, rating))
+            # recalculate the average rating for the item
+            average_result = backend.run_query("SELECT AVG(rating) FROM item_rating WHERE item_id = %s;", (item_id,))
+            if average_result and average_result[0][0] is not None:
+                avg_rating = float(average_result[0][0])
+            else:
+                avg_rating = 0.0
+            backend.run_query("UPDATE inventory_item SET avg_rating = %s WHERE item_id = %s;", (avg_rating, item_id))
+            return {"success": True, "message": "Rating recorded and updated successfully"}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
 
     def give_feedback(self): #Azul
         pass
