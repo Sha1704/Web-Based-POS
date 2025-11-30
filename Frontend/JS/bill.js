@@ -31,18 +31,25 @@ function populateItemSelect(items) {
 populateItemSelect(foodDB);
 
 function addItem() {
-    const itemId = Number(document.getElementById("item-select").value);
-    const qty = Number(document.getElementById("item-qty").value);
+    const itemSelect = document.getElementById("item-select");
+    const qty = parseInt(document.getElementById("item-qty").value);
 
-    if (!itemId || qty <= 0) {
-        alert("Please select an item and enter a valid quantity.");
-        return;
-    }
+    if (!itemSelect.value) return alert("Select an item first");
 
-    const item = foodDB.find(f => f.id === itemId);
-    billItems.push({ name: item.name, qty, price: item.price });
+    const itemID = parseInt(itemSelect.value);
+    const item = foodDB.find(f => f.id === itemID);
+
+    billItems.push({
+        id: item.id,
+        name: item.name,
+        qty: qty,
+        price: item.price
+    });
+
     renderBill();
 }
+
+
 
 // Tax
 const TAX_RATE = 0.02;
@@ -57,13 +64,21 @@ function renderBill() {
         const itemTotal = item.qty * item.price;
         subtotal += itemTotal;
         row.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.qty}</td>
-            <td>$${item.price.toFixed(2)}</td>
-            <td>$${itemTotal.toFixed(2)}</td>
-        `;
+    <td>${item.name}</td>
+    <td>${item.qty}</td>
+    <td>$${item.price.toFixed(2)}</td>
+    <td>$${itemTotal.toFixed(2)}</td>
+    <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">
+            X
+        </button>
+    </td>
+`;
+
         tbody.appendChild(row);
     });
+
+    
 
     const tax = subtotal * TAX_RATE;
     const total = subtotal + tax + tip - discount;
@@ -88,6 +103,12 @@ function renderBill() {
     }
 }
 
+//Delete Item
+
+function deleteItem(id) {
+    billItems = billItems.filter(item => item.id !== id);
+    renderBill();
+}
 // Tip & Discount
 function updateBill() {
     tip = Number(document.getElementById("tip").value) || 0;
@@ -248,7 +269,11 @@ function loadReceiptFromURL() {
         document.getElementById("receipt-id").value = id;
     }
 }
-
+function deleteRow(button) {
+    const row = button.closest("tr");
+    row.remove();
+    updateBill(); // Recalculate totals
+}
 
 // Run on page load
 window.onload = function () {
