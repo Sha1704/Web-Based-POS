@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Ahead</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../index.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
+</head>
+<header>
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-warning"
+                onclick="window.location.href='maintenanceRequest.html'">
+            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+            Request Maintenance
+        </button>
+    </div>
+    
+</header>
+<body id="home-page">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="text-center mb-4">
+                <h5 class="text-white">POS Dashboard</h5>
+                <p class="text-gray-300">Cashier: Zoe S.</p>
+            </div>
+
+            <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
+            <a href="bills.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="orderAhead.html" class="active"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
+            <a href="sales.html" class="admin-locked d-none"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
+            <a href="inventory.html" class="admin-locked d-none"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+            <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+            <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="order-page">
+
+                <h2 class="mb-4">Order Ahead</h2>
+
+                <div id="order-container" style="display: flex; gap: 20px;">
+                    
+                    <!-- Left: Add items -->
+                    <div style="flex: 2;">
+
+                    <!-- RECEIPT ID -->
+                    <div class="mb-3">
+                        <label for="oa-receipt-id"><strong>Order ID</strong></label>
+                        <input type="number" id="oa-receipt-id" name="oa-reciept-id" class="form-control" placeholder="Enter Order ID">
+                    </div>
+
+                        <h3 class="mb-2">Add Items</h3>
+
+                        <select id="oa-item-select" class="form-select mb-3">
+                            <option value="">-- Select an item --</option>
+                        </select>
+
+                        <input type="number" id="oa-qty" name="oa-qty" class="form-control mb-3"
+                               placeholder="Quantity" min="1" value="1">
+
+                        <button class="btn btn-primary mb-4" onclick="oa_addItem()">Add Item</button>
+
+                        <!-- Cart Table -->
+                        <table class="table table-striped" id="oa-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Right: Summary -->
+                    <div style="flex: 1;">
+                        <h3>Summary</h3>
+
+                        <div id="oa-summary" class="mb-4">
+                            Total: $0.00
+                        </div>
+
+                        <h4>Pickup Time</h4>
+                        <input type="time" id="oa-pickup-time" name="oa-pickup-time" class="form-control mb-4">
+
+                        <button class="btn btn-success w-100" onclick="oa_submitOrder()">Place Order</button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../JS/orderAhead.js"></script>
+</body>
+
+</html>

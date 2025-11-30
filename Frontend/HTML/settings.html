@@ -19,3 +19,99 @@
         <p class="text-muted">No feedback yet.</p>
     </div>
 </div>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../index.css">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
+</head>
+<header>
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-warning"
+                onclick="window.location.href='maintenanceRequest.html'">
+            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+            Request Maintenance
+        </button>
+    </div>
+    
+</header>
+<body id="home-page">
+
+    <div class="d-flex">
+
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="text-center mb-4">
+                <h5 class="text-white">POS Dashboard</h5>
+                <p class="text-gray-300">Cashier: Zoe S.</p>
+            </div>
+
+            <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
+            <a href="bill.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
+
+            <!-- Admin-locked items -->
+            <a href="sales.html" id="sales-link" style="display:none;">
+                <i class="fa-solid fa-chart-line me-2"></i>Sales
+            </a>
+
+            <a href="inventory.html" id="inventory-link" style="display:none;">
+                <i class="fa-solid fa-boxes me-2"></i>Inventory
+            </a>
+
+            <a href="settings.html" class="active"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+            <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="settings-page">
+
+                <h2 class="mb-4">Settings</h2>
+
+                <div class="card shadow p-4" style="max-width: 400px;">
+                    <h4 class="mb-3">Account</h4>
+
+                    <button id="logout-button" class="btn btn-danger w-100">
+                        Logout
+                    </button>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Admin Unlock Logic
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const adminUnlocked = localStorage.getItem("adminUnlocked") === "true";
+
+            if (adminUnlocked) {
+                document.getElementById("sales-link").style.display = "block";
+                document.getElementById("inventory-link").style.display = "block";
+            }
+
+        });
+    </script> -->
+
+    <!-- Logout Script -->
+    <script src="../JS/logout.js"></script>
+
+</body>
+</html>
+

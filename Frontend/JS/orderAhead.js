@@ -1,0 +1,134 @@
+// Temporary test menu (same idea as in bill.js)
+const oaDB = [
+    { id: 1, name: "Burger", price: 12.99 },
+    { id: 2, name: "Fries", price: 4.99 },
+    { id: 3, name: "Soda", price: 1.50 },
+    { id: 4, name: "Pizza Slice", price: 5.00 },
+    { id: 5, name: "Salad", price: 5.75 }
+];
+
+let oaItems = [];
+const OA_TAX_RATE = 0.02; // frontend display only
+
+// ---------------------------
+// Populate item dropdown
+// ---------------------------
+function oa_populateDropdown() {
+    const select = document.getElementById("oa-item-select");
+    select.innerHTML = `<option value="">-- Select an item --</option>`;
+
+    oaDB.forEach(item => {
+        const opt = document.createElement("option");
+
+        // IMPORTANT: backend expects item_name
+        opt.value = item.name;
+        opt.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+
+        select.appendChild(opt);
+    });
+}
+
+oa_populateDropdown();
+
+// ---------------------------
+// Add item to order
+// ---------------------------
+function oa_addItem() {
+    const itemName = document.getElementById("oa-item-select").value;
+    const qty = Number(document.getElementById("oa-qty").value);
+
+    if (!itemName || qty <= 0) {
+        alert("Choose an item and quantity.");
+        return;
+    }
+
+    const item = oaDB.find(f => f.name === itemName);
+
+    oaItems.push({
+        item_name: item.name,    // backend field
+        quantity: qty,           // backend field
+        price: item.price        // used for display only
+    });
+
+    oa_renderOrder();
+}
+
+// ---------------------------
+// Render table + summary
+// ---------------------------
+function oa_renderOrder() {
+    const tbody = document.querySelector("#oa-table tbody");
+    tbody.innerHTML = "";
+
+    let subtotal = 0;
+
+    oaItems.forEach(item => {
+        const row = document.createElement("tr");
+        const total = item.quantity * item.price;
+        subtotal += total;
+
+        row.innerHTML = `
+            <td>${item.item_name}</td>
+            <td>${item.quantity}</td>
+            <td>$${item.price.toFixed(2)}</td>
+            <td>$${total.toFixed(2)}</td>
+        `;
+
+        tbody.appendChild(row);
+    });
+
+    const tax = subtotal * OA_TAX_RATE;
+    const finalTotal = subtotal + tax;
+
+    document.getElementById("oa-summary").innerHTML = `
+        <div>Subtotal: $${subtotal.toFixed(2)}</div>
+        <div>Tax (2%): $${tax.toFixed(2)}</div>
+        <div><strong>Total: $${finalTotal.toFixed(2)}</strong></div>
+    `;
+}
+
+// ---------------------------
+// Submit order to backend
+// ---------------------------
+async function oa_submitOrder() {
+    if (oaItems.length === 0) {
+        alert("No items in order.");
+        return;
+    }
+
+    const pickupTime = document.getElementById("oa-pickup-time").value;
+
+    // Build request body EXACTLY how backend expects
+    const bodyData = {
+        customer_email: "test@example.com", // later replace with logged-in user
+        items: oaItems.map(i => ({
+            item_name: i.item_name,
+            quantity: i.quantity
+        })),
+        tip: 0,
+        note: pickupTime ? `Pickup at ${pickupTime}` : null
+    };
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/orderAhead", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bodyData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`Order placed successfully! Receipt #${result.receipt_id}`);
+
+            // Clear UI
+            oaItems = [];
+            oa_renderOrder();
+        } else {
+            alert(result.message);
+        }
+    } catch (err) {
+        alert("Failed to submit order. Server error.");
+        console.error(err);
+    }
+}

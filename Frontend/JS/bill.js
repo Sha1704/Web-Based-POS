@@ -31,18 +31,25 @@ function populateItemSelect(items) {
 populateItemSelect(foodDB);
 
 function addItem() {
-    const itemId = Number(document.getElementById("item-select").value);
-    const qty = Number(document.getElementById("item-qty").value);
+    const itemSelect = document.getElementById("item-select");
+    const qty = parseInt(document.getElementById("item-qty").value);
 
-    if (!itemId || qty <= 0) {
-        alert("Please select an item and enter a valid quantity.");
-        return;
-    }
+    if (!itemSelect.value) return alert("Select an item first");
 
-    const item = foodDB.find(f => f.id === itemId);
-    billItems.push({ name: item.name, qty, price: item.price });
+    const itemID = parseInt(itemSelect.value);
+    const item = foodDB.find(f => f.id === itemID);
+
+    billItems.push({
+        id: item.id,
+        name: item.name,
+        qty: qty,
+        price: item.price
+    });
+
     renderBill();
 }
+
+
 
 // Tax
 const TAX_RATE = 0.02;
@@ -69,8 +76,21 @@ function renderBill() {
             <td>$${itemTotal.toFixed(2)}</td>
             <td>${starRating}</td>
         `;
+    <td>${item.name}</td>
+    <td>${item.qty}</td>
+    <td>$${item.price.toFixed(2)}</td>
+    <td>$${itemTotal.toFixed(2)}</td>
+    <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">
+            X
+        </button>
+    </td>
+`;
+
         tbody.appendChild(row);
     });
+
+    
 
     const tax = subtotal * TAX_RATE;
     const total = subtotal + tax + tip - discount;
@@ -124,8 +144,12 @@ function rateBillItem(itemIndex, rating) {
     });
 }
 
+//Delete Item
 
-
+function deleteItem(id) {
+    billItems = billItems.filter(item => item.id !== id);
+    renderBill();
+}
 // Tip & Discount
 function updateBill() {
     tip = Number(document.getElementById("tip").value) || 0;
@@ -239,3 +263,54 @@ function completePayment() {
     const method = document.getElementById("payment-method").value;
     alert(`Payment method selected: ${method}`);
 }
+
+// Load receipt ID from URL if present
+function loadReceiptFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("receipt");
+
+    if (id) {
+        document.getElementById("receipt-id").value = id;
+    }
+}
+
+async function voidTransaction() {
+    const receiptID = document.getElementById("void-receipt-id").value;
+    const adminEmail = document.getElementById("admin-email").value;
+    const adminCode = document.getElementById("admin-code").value;
+
+    if (!receiptID || !adminEmail || !adminCode) {
+        alert("Please fill out all fields.");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:5000/voidTransaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                receipt_id: receiptID,
+                admin_email: adminEmail,
+                admin_code: adminCode
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("Transaction voided successfully.");
+        } else {
+            alert("Failed to void transaction: " + result.error);
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Server error while voiding transaction.");
+    }
+}
+
+// Run on page load
+window.onload = function () {
+    populateItems();
+    loadReceiptFromURL();
+};

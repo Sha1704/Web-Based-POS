@@ -1,6 +1,6 @@
-body {
+Bill page wrapper
+#bill-page {
     font-family: Arial, sans-serif;
-    background-color: rgb(93, 93, 93);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -8,22 +8,28 @@ body {
     margin: 0;
 }
 
-#pos-container {
+/* POS container */
+/* #bill-page #pos-container {
     background-color: white;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 67%;
-}
+} */
 
-h2, h3, h4, p {
+/* Text elements */
+#bill-page h2,
+#bill-page h3,
+#bill-page h4,
+#bill-page p {
     text-align: center;
     margin-bottom: 10px;
 }
 
-input[type="text"],
-input[type="number"],
-select {
+/* Inputs */
+#bill-page input[type="text"],
+#bill-page input[type="number"],
+#bill-page select {
     width: 100%;
     padding: 10px;
     margin: 5px 0 10px 0;
@@ -32,7 +38,8 @@ select {
     box-sizing: border-box;
 }
 
-button {
+/* Buttons */
+#bill-page button {
     width: 100%;
     padding: 10px;
     background-color: #007bff;
@@ -43,29 +50,32 @@ button {
     margin-top: 5px;
 }
 
-button:hover {
+#bill-page button:hover {
     background-color: #0056b3;
 }
 
-table {
+/* Table */
+#bill-page table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
     text-align: left;
 }
 
-table th, table td {
+#bill-page table th,
+#bill-page table td {
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-table th {
+#bill-page table th {
     background-color: #f2f2f2;
 }
 
-#total {
+#bill-page #total {
     margin-top: 15px;
     font-weight: bold;
     text-align: center;
     font-size: 18px;
 }
+

@@ -1,13 +1,7 @@
-document.addEventListener("DOMContentLoaded", function () {
-  // ===== Sidebar Navigation =====
-  const links = document.querySelectorAll(".sidebar a");
-  const screens = document.querySelectorAll(".screen");
+// JS/index.js
 
-  links.forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      links.forEach(l => l.classList.remove("active"));
-      link.classList.add("active");
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Home page loaded");
 
       const target = link.textContent.trim().toLowerCase();
       screens.forEach(screen => {

@@ -1,7 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("signup-form");
+    const step1Form = document.getElementById("signup-form-step1");
+    const step2Form = document.getElementById("signup-form-step2");
+    const step1Div = document.getElementById("part1");
+    const step2Div = document.getElementById("part2");
     const message = document.getElementById("message");
     const home = document.getElementById("home-button");
+
+    let signupInfo = {};
 
     // Home button
     home.addEventListener("click", () => {
@@ -41,8 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-
-    form.addEventListener("submit", async (e) => {
+    step1Form.addEventListener("submit", async (e) => {
         e.preventDefault();
         message.textContent = "";
 
@@ -62,37 +66,51 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        //Test for no backend
-        setTimeout(() => {
-            message.style.color = "green";
-            message.textContent = "Account created successfully!";
-            // Redirect
-            setTimeout(() => {
-                window.location.href = "../HTML/login.html";
-            }, 1000);
-        }, 1000);
+        //Page 1 Data
+        signupInfo.email = email;
+        signupInfo.password = password;
 
-        // When Backend is finished vv
-        // try {
-        //     const response = await fetch("/signup", {
-        //         method: "POST",
-        //         headers: { "Content-Type": "application/json" },
-        //         body: JSON.stringify({ email, password }),
-        //     });
+        step1Div.style.display = "none";
+        step2Div.style.display = "block";
+    });
 
-        //     const data = await response.json();
+    //Page 2
+    step2Form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        message.textContent = "";
 
-        //     if (response.ok) {
-        //         message.style.color = "green";
-        //         message.textContent = data.message || "Account created successfully!";
-        //     } else {
-        //         message.style.color = "red";
-        //         message.textContent = data.error || "Signup failed.";
-        //     }
-        // } catch (err) {
-        //     message.style.color = "red";
-        //     message.textContent = "Network error. Please try again.";
-        //     console.error(err);
-        // }
+        signupInfo.user_type = document.getElementById("user-type").value;
+        signupInfo.security_question = document.getElementById("security-question").value;
+        signupInfo.security_answer = document.getElementById("security-answer").value.trim();
+
+        if (!signupInfo.user_type || !signupInfo.security_question || !signupInfo.security_answer) {
+            message.style.color = "red";
+            message.textContent = "Please fill in all fields.";
+            return;
+        }
+
+        //Sending to backend
+        try {
+            const response = await fetch("/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(signupInfo),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                message.style.color = "green";
+                message.textContent = data.message || "Account created successfully!";
+                setTimeout(() => window.location.href = "../HTML/login.html", 1000);
+            } else {
+                message.style.color = "red";
+                message.textContent = data.error || "Signup failed.";
+            }
+        } catch (err) {
+            message.style.color = "red";
+            message.textContent = "Network error. Please try again.";
+            console.error(err);
+        }
     });
 });
