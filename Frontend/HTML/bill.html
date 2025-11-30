@@ -4,31 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment</title>
+    <title>Bill</title>
 
     <link rel="stylesheet" href="../bill.css">
     <link rel="stylesheet" href="../index.css">
 
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
 </head>
 
-<header>
-    <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-outline-warning"
-                onclick="window.location.href='maintenanceRequest.html'">
-            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
-            Request Maintenance
-        </button>
-    </div>
-    
-</header>
 <body id="home-page">
     <div class="d-flex">
 
@@ -40,12 +30,11 @@
             </div>
 
             <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
-            <a href="bills.html" class="active"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="bill.html" class="active"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
             <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
 
-            <!-- HIDDEN UNTIL ADMIN UNLOCKS -->
-            <a href="sales.html" class="admin-locked d-none"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
-            <a href="inventory.html" class="admin-locked d-none"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+            <a id="sales-link" href="sales.html" style="display:none;"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
+            <a id="inventory-link" href="inventory.html" style="display:none;"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
 
             <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
             <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
@@ -54,116 +43,116 @@
         <!-- Main Content -->
         <main class="main-content">
 
-            <div id="bill-page">
+            <div id="bill-page" class="d-flex gap-4">
 
-                    <!-- LEFT COLUMN (ITEMS + BILL TABLE) -->
-                    <div id="left-column" style="flex: 2;">
+                <!-- LEFT SIDE -->
+                <div id="left-column" style="flex: 2;">
 
-                        <h2>POS System</h2>
+                    <h2>POS System</h2>
 
-                        <!-- RECEIPT ID FOR BACKEND -->
-                        <div class="mt-3">
-                            <label for="receipt-id"><strong>Receipt ID</strong></label>
-                            <input type="number" id="receipt-id" placeholder="Enter Receipt ID">
-                        </div>
-
-                        <h3 class="mt-4">Add Items</h3>
-
-                        <select id="item-select">
-                            <option value="">-- Select an item --</option>
-                        </select>
-
-                        <h4>Quantity</h4>
-                        <input type="number" id="item-qty" placeholder="Quantity" min="1" value="1">
-
-                        <button onclick="addItem()">Add Item</button>
-
-                        <table id="bill-table" class="mt-3">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Qty</th>
-                                    <th>Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    <!-- Receipt ID -->
+                    <div class="mt-3">
+                        <label><strong>Receipt ID</strong></label>
+                        <input type="number" id="receipt-id" placeholder="Receipt ID">
                     </div>
 
-                    <!-- RIGHT COLUMN (SUMMARY + PAYMENT FEATURES) -->
-                    <div id="right-column" style="flex: 1;">
+                    <!-- Add Items -->
+                    <h3 class="mt-4">Add Items</h3>
 
-                        <!-- Total Summary -->
-                        <div id="total-container">
-                            <h3>Summary</h3>
-                            <div id="total">Total: $0.00</div>
+                    <select id="item-select">
+                        <option value="">-- Select item --</option>
+                    </select>
+
+                    <h4>Quantity</h4>
+                    <input type="number" id="item-qty" min="1" value="1">
+
+                    <button onclick="addItem()" class="btn btn-primary mt-2">Add Item</button>
+
+                    <!-- Bill Table -->
+                    <table id="bill-table" class="mt-3 table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- RIGHT SIDE -->
+                <div id="right-column" style="flex: 1;">
+
+                    <!-- Summary -->
+                    <div id="total-container" class="mb-3">
+                        <h3>Summary</h3>
+                        <div>Total: $0.00</div>
+                    </div>
+
+                    <!-- Tips / Discounts -->
+                    <h3 class="mt-4">Add Tip & Discount</h3>
+
+                    <p>Tip</p>
+                    <input type="number" id="tip" placeholder="Tip amount" step="0.01">
+
+                    <p class="mt-2">Discount Code</p>
+                    <input type="text" id="coupon" placeholder="Promo code">
+
+                    <button onclick="updateBill()" class="btn btn-secondary mt-2">Apply</button>
+
+                    <!-- LOYALTY POINTS -->
+                    <h3 class="mt-4">Loyalty Points</h3>
+
+                    <p>Customer Email</p>
+                    <input type="email" id="loyalty-email" placeholder="Enter email">
+
+                    <button onclick="checkLoyaltyPoints()" class="btn btn-info mt-2">Check Points</button>
+
+                    <div id="loyalty-display" class="mt-2 text-primary" style="font-weight: 600;">
+                        <!-- Filled by JS -->
+                    </div>
+
+                    <div class="mt-3">
+                        <p>Points to Redeem</p>
+                        <input type="number" id="redeem-points" min="0" placeholder="0">
+                        <button onclick="redeemPoints()" class="btn btn-success mt-2">Redeem</button>
+                    </div>
+
+                    <!-- Split Payment -->
+                    <h3 class="mt-4">Split Payment</h3>
+                    <label>
+                        <input type="checkbox" id="enable-split" onchange="toggleSplit()"> Enable Split Payment
+                    </label>
+
+                    <div id="split-container" style="display: none;">
+                        <p class="mt-2">Number of People</p>
+                        <input type="number" id="num-people" value="2" min="2" onchange="generateSplitInputs()">
+
+                        <div id="split-buttons" class="mt-2 d-flex gap-2">
+                            <button onclick="setSplitType('equal')" class="btn btn-outline-primary">Equal</button>
+                            <button onclick="setSplitType('percent')" class="btn btn-outline-primary">Percent</button>
+                            <button onclick="setSplitType('amount')" class="btn btn-outline-primary">Amount</button>
                         </div>
 
-                        <!-- Tips & Discounts -->
-                        <h3 class="mt-4">Add Tip & Discount</h3>
+                        <div id="split-inputs" class="mt-3"></div>
+                    </div>
 
-                        <p>Tip</p>
-                        <input type="number" id="tip" placeholder="Tip amount" step="0.01">
+                    <!-- Payment Method -->
+                    <h3 class="mt-4">Select Payment Method</h3>
 
-                        <p class="mt-2">Discount Code</p>
-                        <input type="text" id="coupon" placeholder="Promo code">
+                    <select id="payment-method">
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="mobile">Mobile Pay</option>
+                    </select>
 
-                        <button onclick="updateBill()">Apply</button>
+                    <input type="number" id="payment-amount" class="mt-2" step="0.01" placeholder="Amount Paid">
 
-                        <!-- Split Payment -->
-                        <h3 class="mt-4">Split Payment</h3>
+                    <button onclick="completePayment()" class="btn btn-primary mt-3">Pay</button>
 
-                        <label>
-                            <input type="checkbox" id="enable-split" onchange="toggleSplit()"> Enable Split Payment
-                        </label>
-
-                        <div id="split-container" style="display:none; margin-top:10px;">
-                            <label>
-                                Number of People:
-                                <input type="number" id="num-people" min="2" value="2" onchange="generateSplitInputs()">
-                            </label>
-
-                            <br><br>
-
-                            <div id="split-buttons" style="display:flex; gap:10px; margin-bottom:10px;">
-                                <button type="button" onclick="setSplitType('equal')">Split Evenly</button>
-                                <button type="button" onclick="setSplitType('percent')">Percent</button>
-                                <button type="button" onclick="setSplitType('amount')">Amount</button>
-                            </div>
-
-                            <div id="split-inputs"></div>
-                        </div>
-
-                        <!-- Payment Method -->
-                        <h3 class="mt-4">Select Payment Method</h3>
-                        <select id="payment-method">
-                            <option value="cash">Cash</option>
-                            <option value="card">Card</option>
-                            <option value="mobile">Mobile Pay</option>
-                        </select>
-
-                        <div class="mt-3">
-                            <input type="number" id="payment-amount" placeholder="Amount Paid" step="0.01">
-                        </div>
-
-                        <button onclick="completePayment()">Pay</button>
-
-                        <!-- VOID TRANSACTION -->
-                        <h3 class="mt-5">Void Transaction</h3>
-
-                        <input type="email" id="admin-email" placeholder="Admin Email">
-                        <input type="password" id="admin-code" placeholder="Admin Code">
-
-                        <button onclick="void_transaction()">Void</button>
-
-                        <!-- APPROVE VOID -->
-                        <h3 class="mt-4">Approve Voided Transaction</h3>
-
-                        <input type="password" id="approve-code" placeholder="Admin Code">
-                        <button onclick="approve_voided_transaction()">Approve</button>
-
-                    </div>  
+                </div>
             </div>
 
         </main>
@@ -172,11 +161,9 @@
     <!-- JS -->
     <script src="../JS/index.js"></script>
     <script src="../JS/bill.js"></script>
-  
-    
-
 </body>
 </html>
+
 
     
     

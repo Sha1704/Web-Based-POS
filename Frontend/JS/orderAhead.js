@@ -8,40 +8,54 @@ const oaDB = [
 ];
 
 let oaItems = [];
-const OA_TAX_RATE = 0.02;
+const OA_TAX_RATE = 0.02; // frontend display only
 
-// Populate dropdown
+// ---------------------------
+// Populate item dropdown
+// ---------------------------
 function oa_populateDropdown() {
     const select = document.getElementById("oa-item-select");
     select.innerHTML = `<option value="">-- Select an item --</option>`;
 
     oaDB.forEach(item => {
         const opt = document.createElement("option");
-        opt.value = item.id;
+
+        // IMPORTANT: backend expects item_name
+        opt.value = item.name;
         opt.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+
         select.appendChild(opt);
     });
 }
 
 oa_populateDropdown();
 
+// ---------------------------
 // Add item to order
+// ---------------------------
 function oa_addItem() {
-    const itemId = Number(document.getElementById("oa-item-select").value);
+    const itemName = document.getElementById("oa-item-select").value;
     const qty = Number(document.getElementById("oa-qty").value);
 
-    if (!itemId || qty <= 0) {
+    if (!itemName || qty <= 0) {
         alert("Choose an item and quantity.");
         return;
     }
 
-    const item = oaDB.find(f => f.id === itemId);
+    const item = oaDB.find(f => f.name === itemName);
 
-    oaItems.push({ name: item.name, qty, price: item.price });
+    oaItems.push({
+        item_name: item.name,    // backend field
+        quantity: qty,           // backend field
+        price: item.price        // used for display only
+    });
+
     oa_renderOrder();
 }
 
-// Display table + summary
+// ---------------------------
+// Render table + summary
+// ---------------------------
 function oa_renderOrder() {
     const tbody = document.querySelector("#oa-table tbody");
     tbody.innerHTML = "";
@@ -50,12 +64,12 @@ function oa_renderOrder() {
 
     oaItems.forEach(item => {
         const row = document.createElement("tr");
-        const total = item.qty * item.price;
+        const total = item.quantity * item.price;
         subtotal += total;
 
         row.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.qty}</td>
+            <td>${item.item_name}</td>
+            <td>${item.quantity}</td>
             <td>$${item.price.toFixed(2)}</td>
             <td>$${total.toFixed(2)}</td>
         `;
@@ -68,13 +82,15 @@ function oa_renderOrder() {
 
     document.getElementById("oa-summary").innerHTML = `
         <div>Subtotal: $${subtotal.toFixed(2)}</div>
-        <div>Tax (2%): $${tax.toFixed(2())}</div>
+        <div>Tax (2%): $${tax.toFixed(2)}</div>
         <div><strong>Total: $${finalTotal.toFixed(2)}</strong></div>
     `;
 }
 
-// Simulate placing order
-function oa_submitOrder() {
+// ---------------------------
+// Submit order to backend
+// ---------------------------
+async function oa_submitOrder() {
     if (oaItems.length === 0) {
         alert("No items in order.");
         return;
@@ -82,13 +98,37 @@ function oa_submitOrder() {
 
     const pickupTime = document.getElementById("oa-pickup-time").value;
 
-    alert(
-        pickupTime
-            ? `Order placed! Pickup at ${pickupTime}.`
-            : "Order placed! No pickup time selected."
-    );
+    // Build request body EXACTLY how backend expects
+    const bodyData = {
+        customer_email: "test@example.com", // later replace with logged-in user
+        items: oaItems.map(i => ({
+            item_name: i.item_name,
+            quantity: i.quantity
+        })),
+        tip: 0,
+        note: pickupTime ? `Pickup at ${pickupTime}` : null
+    };
 
-    // Clear UI after "placing" order
-    oaItems = [];
-    oa_renderOrder();
+    try {
+        const response = await fetch("http://127.0.0.1:5000/orderAhead", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bodyData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`Order placed successfully! Receipt #${result.receipt_id}`);
+
+            // Clear UI
+            oaItems = [];
+            oa_renderOrder();
+        } else {
+            alert(result.message);
+        }
+    } catch (err) {
+        alert("Failed to submit order. Server error.");
+        console.error(err);
+    }
 }
