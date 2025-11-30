@@ -196,6 +196,43 @@ function redistributeAmount(changedIndex, total) {
     });
 }
 
+async function voidTransaction() {
+    const receiptID = document.getElementById("void-receipt-id").value;
+    const adminEmail = document.getElementById("admin-email").value;
+    const adminCode = document.getElementById("admin-code").value;
+
+    if (!receiptID || !adminEmail || !adminCode) {
+        alert("Please fill out all fields.");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:5000/voidTransaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                receipt_id: receiptID,
+                admin_email: adminEmail,
+                admin_code: adminCode
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Transaction successfully voided.");
+            document.getElementById("void-error").style.display = "none";
+            location.reload();
+        } else {
+            document.getElementById("void-error").style.display = "block";
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("void-error").style.display = "block";
+    }
+}
+
 // Complete payment
 function completePayment() {
     const method = document.getElementById("payment-method").value;
@@ -212,8 +249,11 @@ function loadReceiptFromURL() {
     }
 }
 
+
 // Run on page load
 window.onload = function () {
     populateItems();
     loadReceiptFromURL();
 };
+
+
