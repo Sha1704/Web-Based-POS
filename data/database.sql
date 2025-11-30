@@ -107,3 +107,9 @@ ALTER TABLE user
 ADD COLUMN employee_code INT;
 ALTER TABLE receipt
 ADD COLUMN note VARCHAR(250);
+
+CREATE TABLE customer_feedback ( 
+    feedback_id INT AUTO_INCREMENT PRIMARY KEY, 
+    message TEXT NOT NULL, 
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, 
+);
