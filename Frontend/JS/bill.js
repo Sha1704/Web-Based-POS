@@ -217,6 +217,22 @@ function redistributeAmount(changedIndex, total) {
     });
 }
 
+// Complete payment
+function completePayment() {
+    const method = document.getElementById("payment-method").value;
+    alert(`Payment method selected: ${method}`);
+}
+
+// Load receipt ID from URL if present
+function loadReceiptFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("receipt");
+
+    if (id) {
+        document.getElementById("receipt-id").value = id;
+    }
+}
+
 async function voidTransaction() {
     const receiptID = document.getElementById("void-receipt-id").value;
     const adminEmail = document.getElementById("admin-email").value;
@@ -238,41 +254,18 @@ async function voidTransaction() {
             })
         });
 
-        const data = await response.json();
+        const result = await response.json();
 
-        if (data.success) {
-            alert("Transaction successfully voided.");
-            document.getElementById("void-error").style.display = "none";
-            location.reload();
+        if (response.ok) {
+            alert("Transaction voided successfully.");
         } else {
-            document.getElementById("void-error").style.display = "block";
+            alert("Failed to void transaction: " + result.error);
         }
 
     } catch (error) {
         console.error("Error:", error);
-        document.getElementById("void-error").style.display = "block";
+        alert("Server error while voiding transaction.");
     }
-}
-
-// Complete payment
-function completePayment() {
-    const method = document.getElementById("payment-method").value;
-    alert(`Payment method selected: ${method}`);
-}
-
-// Load receipt ID from URL if present
-function loadReceiptFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("receipt");
-
-    if (id) {
-        document.getElementById("receipt-id").value = id;
-    }
-}
-function deleteRow(button) {
-    const row = button.closest("tr");
-    row.remove();
-    updateBill(); // Recalculate totals
 }
 
 // Run on page load
@@ -280,5 +273,3 @@ window.onload = function () {
     populateItems();
     loadReceiptFromURL();
 };
-
-
