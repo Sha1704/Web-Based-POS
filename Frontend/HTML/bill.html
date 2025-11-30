@@ -19,6 +19,16 @@
     <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
 </head>
 
+<header>
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-warning"
+                onclick="window.location.href='maintenanceRequest.html'">
+            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+            Request Maintenance
+        </button>
+    </div>
+    
+</header>
 <body id="home-page">
     <div class="d-flex">
 
@@ -29,10 +39,14 @@
                 <p class="text-gray-300">Cashier: Zoe S.</p>
             </div>
 
-            <a href="index.html" class="active"><i class="fa-solid fa-house me-2"></i>Home</a>
-            <a href="bill.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
-            <a href="sales.html"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
-            <a href="inventory.html"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+            <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
+            <a href="bills.html" class="active"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
+
+            <!-- HIDDEN UNTIL ADMIN UNLOCKS -->
+            <a href="sales.html" class="admin-locked d-none"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
+            <a href="inventory.html" class="admin-locked d-none"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+
             <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
             <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
         </nav>
@@ -41,8 +55,6 @@
         <main class="main-content">
 
             <div id="bill-page">
-
-                
 
                     <!-- LEFT COLUMN (ITEMS + BILL TABLE) -->
                     <div id="left-column" style="flex: 2;">
@@ -143,13 +155,13 @@
                         <input type="email" id="admin-email" placeholder="Admin Email">
                         <input type="password" id="admin-code" placeholder="Admin Code">
 
-                        <button onclick="voidTransaction()">Void</button>
+                        <button onclick="void_transaction()">Void</button>
 
                         <!-- APPROVE VOID -->
                         <h3 class="mt-4">Approve Voided Transaction</h3>
 
                         <input type="password" id="approve-code" placeholder="Admin Code">
-                        <button onclick="approveVoid()">Approve</button>
+                        <button onclick="approve_voided_transaction()">Approve</button>
 
                     </div>  
             </div>
@@ -160,6 +172,8 @@
     <!-- JS -->
     <script src="../JS/index.js"></script>
     <script src="../JS/bill.js"></script>
+  
+    
 
 </body>
 </html>

@@ -18,10 +18,18 @@
 
     <link rel="stylesheet" href="../index.css">
 </head>
-
-<body id="home-page">
+<header>
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-warning"
+                onclick="window.location.href='maintenanceRequest.html'">
+            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+            Request Maintenance
+        </button>
+    </div>
+    
+</header>
+<body id="inventory-page">
     <div class="d-flex">
-
         <!-- Sidebar -->
         <nav class="sidebar">
             <div class="text-center mb-4">
@@ -30,7 +38,8 @@
             </div>
 
             <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
-            <a href="bill.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="bills.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
             <a href="sales.html"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
             <a href="inventory.html" class="active"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
             <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
@@ -42,60 +51,74 @@
 
             <h2 class="mb-3">Inventory</h2>
 
-            <div class="inventory-container">
-
-                <!-- Search -->
-                <div class="mb-3">
-                    <input type="text" id="inventory-search" class="form-control" placeholder="Search inventory...">
-                </div>
-
-                <!-- Inventory Table -->
-                <div class="card mb-3">
-                    <div class="card-header bg-secondary text-white">Inventory</div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Qty</th>
-                                    <th>Price</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inventory-body">
-                                <!-- JS fills rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Add Product Button -->
-                <button class="btn btn-primary mb-3" id="add-product-btn">+ Add New Product</button>
-
-                <!-- Add Product Form -->
-                <div id="add-product-form" class="card p-3 d-none">
-                    <div class="mb-3">
-                        <label class="form-label">Item Name:</label>
-                        <input type="text" id="new-item-name" class="form-control" placeholder="Enter item name">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Quantity:</label>
-                        <input type="number" id="new-item-qty" class="form-control" min="0">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Price:</label>
-                        <input type="number" id="new-item-price" class="form-control" min="0" step="0.01">
-                    </div>
-
-                    <button class="btn btn-success" id="save-new-product">Save Product</button>
-                </div>
-
+            <!-- Search -->
+            <div class="mb-3">
+                <input type="text" id="inventory-search" class="form-control" placeholder="Search inventory...">
             </div>
+
+            <!-- Inventory Table -->
+            <div class="card mb-3">
+                <div class="card-header bg-secondary text-white">Inventory</div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-body">
+                            <!-- Filled by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add Product Button -->
+            <button class="btn btn-primary mb-3" id="add-product-btn">+ Add New Product</button>
+
+            <!-- Add Product Form -->
+            <div id="add-product-form" class="card p-3 d-none">
+                <h5>Add New Product</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Item Name:</label>
+                    <input type="text" id="new-item-name" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Quantity:</label>
+                    <input type="number" id="new-item-qty" class="form-control" min="0">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Price:</label>
+                    <input type="number" id="new-item-price" class="form-control" min="0" step="0.01">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Category:</label>
+                    <input type="text" id="new-item-category" class="form-control">
+                </div>
+
+                <button class="btn btn-success" id="save-new-product">Save Product</button>
+            </div>
+
         </main>
     </div>
 
     <script src="../JS/inventory.js"></script>
+    <script>
+        // If admin is NOT unlocked → block access
+        if (localStorage.getItem("adminUnlocked") !== "true") {
+            alert("Admin access required.");
+            window.location.href = "admin.html";
+        }
+    </script>
+    
 </body>
+
 </html>

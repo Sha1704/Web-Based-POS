@@ -201,3 +201,19 @@ function completePayment() {
     const method = document.getElementById("payment-method").value;
     alert(`Payment method selected: ${method}`);
 }
+
+// Load receipt ID from URL if present
+function loadReceiptFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("receipt");
+
+    if (id) {
+        document.getElementById("receipt-id").value = id;
+    }
+}
+
+// Run on page load
+window.onload = function () {
+    populateItems();
+    loadReceiptFromURL();
+};

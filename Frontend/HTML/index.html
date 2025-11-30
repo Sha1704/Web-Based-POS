@@ -19,7 +19,16 @@
 <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
 
 </head>
-
+<header>
+  <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-outline-warning"
+              onclick="window.location.href='maintenanceRequest.html'">
+          <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+          Request Maintenance
+      </button>
+  </div>
+  
+</header>
 <body>
     <!-- Basic Navigation Idea:
 
@@ -56,10 +65,14 @@
                 <p class="text-gray-300">Cashier: Zoe S.</p>
             </div>
 
-            <a href="index.html" class="active"><i class="fa-solid fa-house me-2"></i>Home</a>
-            <a href="bill.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
-            <a href="sales.html"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
-            <a href="inventory.html"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+            <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
+            <a href="bills.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
+
+            <!-- HIDDEN UNTIL ADMIN UNLOCKS -->
+            <a href="sales.html" class="admin-locked d-none"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
+            <a href="inventory.html" class="admin-locked d-none"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+
             <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
             <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
         </nav>
@@ -67,17 +80,14 @@
         <!-- Main Content -->
         <main class="main-content">
             <div>
-                <h2 class="mb-3">Home - Select Items</h2>
+                <h2 class="mb-3">Welcome to your POS System!</h2>
                 <div id="product-grid" class="row g-3"></div>
-
-                <div class="d-flex justify-content-end mt-4">
-                    <button class="btn btn-primary" onclick="startNewBill()">Start New Bill</button>
-                </div>
             </div>
         </main>
     </div>
 
     <script src="JS/index.js"></script>
+  
 </body>
 </html>
           
