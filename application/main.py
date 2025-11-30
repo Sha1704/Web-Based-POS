@@ -101,17 +101,19 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not login"}), 200
 
-    @app.route("/signup")
+    @app.route("/signup") #Check (CV)
     def signup():
         # create_account(self, email, password, user_type, security_question, security_answer) account
 
         # no field for user_type and security question and answer
+        # ^^Implemented now double check to make sure, It gets the network error but thats because the flask isnt set up yet Frontend should be good
 
     @app.route("/resetPassword")
     def reset_password(): 
         # password_reset(self, email, new_password, security_answer) account
         
         # 2 reset password pages
+        # ^^ Marked one for delete, want a double check before deleting(CV)
         # use current logged in email for email
         # is there a way to check if password are the same in html or js?
         # no field for security answer
