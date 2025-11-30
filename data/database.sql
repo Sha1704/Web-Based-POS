@@ -137,3 +137,6 @@ CREATE TABLE item_rating(
         ON DELETE CASCADE,
     UNIQUE KEY unique_rating (customer_email, item_id)
 );
+
+ALTER TABLE inventory_item
+ADD COLUMN avg_rating DECIMAL(3,2) DEFAULT 0.0;

@@ -103,7 +103,7 @@ class Customer:
 
     def rate_item(self, customer_email, item_name, rating): #Dariya
         """
-        Allows a customer to rate an item (1-5 stars)
+        Allows a customer to rate an item (1-5 stars) and updates the item's average rating
         :param customer_email: email of customer
         :param item_name: name of the inventory item
         :param rating: integer rating from 1-5
@@ -118,17 +118,23 @@ class Customer:
             if not result:
                 return {"success": False, "message": "Item not found"}
             item_id = result[0][0]
-            # update and insert the rating
+            # check if the customer already rated the item
             existing = backend.run_query(
                 "SELECT rating_id FROM item_rating WHERE customer_email = %s AND item_id = %s;", (customer_email,item_id))
             if existing:
                 backend.run_query("UPDATE item_rating SET rating = %s, created_at = CURRENT_TIMESTAMP WHERE rating_id = %s;",
                                   (rating, existing[0][0]))
-                return {"success": True, "message": "Rating updated successfully"}
             else:
                 backend.run_query("INSERT INTO item_rating (customer_email, item_id, rating) VALUES (%s, %s, %s);",
                                   (customer_email, item_id, rating))
-                return {"success": True, "message": "Rating added successfully"}
+            # recalculate the average rating for the item
+            average_result = backend.run_query("SELECT AVG(rating) FROM item_rating WHERE item_id = %s;", (item_id,))
+            if average_result and average_result[0][0] is not None:
+                avg_rating = float(average_result[0][0])
+            else:
+                avg_rating = 0.0
+            backend.run_query("UPDATE inventory_item SET avg_rating = %s WHERE item_id = %s;", (avg_rating, item_id))
+            return {"success": True, "message": "Rating recorded and updated successfully"}
         except Exception as e:
             return {"success": False, "message": str(e)}
 
