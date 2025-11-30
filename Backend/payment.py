@@ -26,15 +26,15 @@ class Payment:
     
     def add_payment_method(self, receiptID, payment_type, amount): # Dariya 
         """
-        Adds payment method to transaction.
+        Adds payment method to transaction linked to a receipt
 
-        :param transaction_id: ID of transaction to add payment
+        :param receiptID: ID of receipt to add payment
         :param payment_type: Type of payment like cash or card
         :param amount: Amount paid using the method
         :return: True if payment method added successfully, otherwise False
         """
         try:
-            payment_query = 'INSERT INTO payment_method (transaction_id, payment_type, amount) VALUES (%s, %s, %s)'
+            payment_query = 'INSERT INTO payment_method (receipt_id, payment_type, amount) VALUES (%s, %s, %s)'
             backend.run_query(payment_query, (receiptID, payment_type, amount))
             return True
         
@@ -73,14 +73,14 @@ class Payment:
 
     def add_tips(self, receiptID, tip_amount): # Dariya
         """
-        Adds tip to existing transaction.
+        Adds tip to existing transaction linked to a receipt
 
-        :param transaction_id: ID of transaction to add tip
+        :param receiptID: ID of receipt to add tip
         :param tip_amount: Tip amount to add
         :return: True if tip added successfully, otherwise False
         """
         try:
-            tip_query = 'UPDATE transaction SET tip_amount = tip_amount + %s WHERE transaction_id = %s'
+            tip_query = 'UPDATE transaction SET tip_amount = tip_amount + %s WHERE receipt_id = %s'
             backend.run_query(tip_query, (tip_amount, receiptID))
             return True
         
@@ -136,7 +136,7 @@ class Payment:
         Voids a transaction by marking it as canceled
         Requires a valid admin code
 
-        :param transaction_id: ID of transaction to void
+        :param receiptID: ID of receipt to void
         :param admin_email: Admin email to verify
         :param admin_code: Admin code to verify
         :return: True if transaction voided successfully, otherwise False
@@ -147,7 +147,7 @@ class Payment:
             if not result or admin_code != result[0][0]:
                 return False
             
-            void_query = "Update transaction SET status = 'Voided' WHERE transaction_id = %s"
+            void_query = "Update transaction SET status = 'Voided' WHERE receipt_id = %s"
             backend.run_query(void_query, (receiptID,))
             return True
         

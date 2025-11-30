@@ -1,35 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account</title>
     <link rel="stylesheet" href="../account.css">
 </head>
+
 <body>
     <div id="login-container">
-    <form id="signup-form">
+        <!--Split for ease of use-->
+        <div id="part1">
+            <form id="signup-form-step1">
 
-        <label for="email">Email:</label>
-        <input type="text" id="email" name="email" required>
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" required>
 
-        <label for="password">Password:</label>
-        <input type="text" id="password" name="password" required>
+                <label for="password">Password:</label>
+                <input type="text" id="password" name="password" required>
 
-        <label for="confirm-password">Confirm Password:</label>
-        <input type="password" id="confirm-password" name="confirm-password" required>
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
 
-        <div id="password-strength" style="font-size: 0.9em; margin-top: 5px;"></div>
+                <div id="password-strength" style="font-size: 0.9em; margin-top: 5px;"></div>
 
-        <button type="submit">Create Account</button>
+                <button type="submit">Create Account</button>
+
+            </form>
+        </div>
+
+        <div id="part2" style="display:none;">
+            <form id="signup-form-step2">
+                <label for="user-type">User Type:</label>
+                <select id="user-type" name="user-type" required>
+                    <option value="customer" selected>Customer</option>
+                    <option value="manager">Manager</option>
+                    <option value="staff">Staff</option>
+                </select>
+
+                <label for="security-question">Security Question:</label>
+                <select id="security-question" name="security-question" required>
+                    <option value="" disabled selected>Select a security question</option>
+                    <option value="mother_maiden">What is your mother's maiden name?</option>
+                    <option value="first_pet">What was the name of your first pet?</option>
+                    <option value="first_school">What was the name of your first school?</option>
+                    <option value="favorite_color">What is your favorite color?</option>
+                    <option value="birth_city">What city were you born in?</option>
+                    <option value="favorite_food">What is your favorite food?</option>
+                    <option value="childhood_nickname">What was your childhood nickname?</option>
+                </select>
+
+                <label for="security-answer">Answer:</label>
+                <input type="text" id="security-answer" name="security-answer" required>
+
+                <button type="submit">Create Account</button>
+            </form>
+        </div>
+
         <p>Already have an account? <a href="login.html">Log in here</a></p>
-    </form>
+        <button id="home-button">Return to Homepage</button>
+        <p id="message"></p>
 
-    <button id="home-button">Return to Homepage</button>
-
-    <p id="message"></p>
-
-    <script src="../JS/signup.js"></script>
-</div>
+        <script src="../JS/signup.js"></script>
+    </div>
 </body>
+
 </html>
