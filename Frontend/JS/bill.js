@@ -6,25 +6,27 @@ let tip = 0;
 // Split payment type (default to equal)
 let currentSplitType = "equal";
 
-//TESTING WITH NO BACKEND DELETE WHEN BACKEND
-const foodDB = [
-    { id: 1, name: "Burger", price: 12.99 },
-    { id: 2, name: "Fries", price: 4.99 },
-    { id: 3, name: "Soda", price: 1.50 },
-    { id: 4, name: "Pizza Slice", price: 5 },
-    { id: 5, name: "Salad", price: 5.75 }
-];
-
-// Populate select dropdown from placeholder
+// Populate select dropdown from backend data
 function populateItemSelect(items) {
     const select = document.getElementById("item-select");
     select.innerHTML = '<option value="">-- Select an item --</option>';
     items.forEach(item => {
         const option = document.createElement("option");
-        option.value = item.id;
-        option.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+        option.value = item.item_id;
+        option.textContent = `${item.item_name} - $${item.price.toFixed(2)}`;
         select.appendChild(option);
     });
+}
+
+async function fetchInventoryItems() {
+    try {
+        const response = await fetch("/inventory/items");
+        const items = await response.json();
+        populateItemSelect(items);
+        window.inventoryItems = items;
+    } catch (err) {
+        console.error("Failed to fetch inventory items", err);
+    }
 }
 
 // Use placeholder for now
@@ -37,12 +39,11 @@ function addItem() {
     if (!itemSelect.value) return alert("Select an item first");
 
     const itemID = parseInt(itemSelect.value);
-    const item = foodDB.find(f => f.id === itemID);
-
-    const price = item.price
+    const item = window.inventoryItems.find(f => f.item_id === itemID);
+    if (!item) return alert("Item not found in inventory.");
     billItems.push({
-        id: item.id,
-        name: item.name,
+        id: item.item_id,
+        name: item.item_name,
         qty: qty,
         price: item.price
     });
@@ -76,8 +77,8 @@ function renderBill() {
             <td>$${item.price.toFixed(2)}</td>
             <td>$${itemTotal.toFixed(2)}</td>
             <td>${starRating}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeItem(${item.id})">Remove</button></td>
         `;
-
         tbody.appendChild(row);
     });
 
@@ -137,9 +138,50 @@ function rateBillItem(itemIndex, rating) {
 
 //Delete Item
 
-function deleteItem(id) {
+function removeItem(id) {
+    // Remove from frontend
     billItems = billItems.filter(item => item.id !== id);
     renderBill();
+    // Remove from backend
+    const receiptId = document.getElementById("receipt-id").value;
+    fetch("/bill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: id, item: billItems.find(i => i.id === id)?.name, receiptId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.status || data.status === "fail") {
+            alert("Could not remove item from bill");
+        }
+    });
+}
+function processRefund() {
+    const receipt_id = document.getElementById("refund-receipt-id").value;
+    const admin_email = document.getElementById("refund-admin-email").value;
+    const admin_code = document.getElementById("refund-admin-code").value;
+    const refund_amount = document.getElementById("refund-amount").value;
+    const total_due = document.getElementById("total-container").innerText.match(/Total: \$(\d+\.\d+)/)[1];
+
+    fetch("/bill/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            admin_code,
+            admin_email,
+            total_due: parseFloat(total_due),
+            refund_amount: parseFloat(refund_amount),
+            receipt_id
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.status || data.status === "fail") {
+            alert("Could not process refund");
+        } else {
+            alert("Refund processed successfully");
+        }
+    });
 }
 // Tip & Discount
 function updateBill() {
@@ -302,6 +344,6 @@ async function voidTransaction() {
 
 // Run on page load
 window.onload = function () {
-    populateItems();
+    fetchInventoryItems();
     loadReceiptFromURL();
 };

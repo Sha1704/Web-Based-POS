@@ -43,3 +43,33 @@ window.clearAdminAccess = function () {
     const success = document.getElementById("admin-success");
     if (success) success.style.display = "none";
 };
+
+// Fetch and display all users
+async function loadUsers() {
+    try {
+        const response = await fetch("/admin/users");
+        const users = await response.json();
+        renderUsers(users);
+    } catch (err) {
+        console.error("Failed to fetch users", err);
+    }
+}
+
+function renderUsers(users) {
+    const tbody = document.getElementById("admin-users-body");
+    tbody.innerHTML = "";
+    users.forEach(user => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${user.email}</td>
+            <td>${user.user_type}</td>
+            <td>${user.security_question}</td>
+            <td>${user.security_answer}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.onload = function () {
+    loadUsers();
+};

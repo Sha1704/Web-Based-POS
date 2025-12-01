@@ -29,10 +29,10 @@ customer_class = cust()
 
 
 class main:
-
-    """
-    Handles user input and menu navigation.
-    """
+    @app.route("/inventory/items")
+    def get_inventory_items():
+        items = sql_class.run_query("SELECT item_id, item_name, price, quantity, category_id FROM inventory_item")
+        return jsonify(items)
 
     @app.route("/signup")
     def signup():
@@ -73,8 +73,8 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not logout"}), 200
         
-    @app.route("/resetPassword")
-    def reset_password(): 
+    @app.route("/forgotPassword")
+    def reset_password():
         data = request.get_json()
         email = data["email"]
         password = data["newPassword"]
@@ -83,7 +83,7 @@ class main:
         reset = account_class.password_reset(email, password, answer)
 
         if reset:
-            return render_template ("forgotPassword.html")
+            return render_template("forgotPassword.html")
         else:
             return jsonify({"status": "fail", "message": "could not reset password"}), 200
     
@@ -157,7 +157,14 @@ class main:
     
     @app.route("/bill")
     def remove_from_bill():
-        pass
+        data = request.get_json()
+        id = data["itemId"]
+        item = data["item"]
+        removed = payment_class.remove_item_from_bill(id, item)
+        if removed:
+            return render_template("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not remove item from bill"}), 200
     
     @app.route("/bill")
     def void_transaction():
@@ -185,58 +192,171 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not approved void transaction"}), 200
         
-    @app.route()
+    @app.route("/bill/refund")
     def manage_refunds():
-        pass
+        data = request.get_json()
+        admin_code = data["admin_code"]
+        admin_email = data["admin_email"]
+        total_due = data["total_due"]
+        refund_amount = data["refund_amount"]
+        receipt_id = data["receipt_id"]
+        refunded = payment_class.manage_refund(admin_code, admin_email, total_due, refund_amount, receipt_id)
+        if refunded:
+            return render_template("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not process refund"}), 200
 
-    @app.route()
+    @app.route("/bills")
     def redeem_points():
-        pass
+        email = request.form["loyalty-email"]
+        points = request.form["redeem-points"]
+        redeemed = customer_class.redeem_loyalty_point(email, points)
 
-    @app.route()
+        if redeemed:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not redeem points"}), 200
+
+    @app.route("/inventory")
     def add_to_inventory():
-        pass
+        name = request.form["new-item-name"]
+        price = request.form["new-item-price"]
+        quant = request.form["new-item-qty"]
+        cat = request.form["new-item-category"]
 
-    @app.route()
+        added = inventory_class.add_to_inventory(name, price, quant, cat)
+
+        if added:
+            return render_template ("inventory.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not add to inventory"}), 200
+
+    @app.route("/inventory/update")
     def update_count():
-        pass
+        data = request.get_json()
+        product_name = data["product_name"]
+        price = data["price"]
+        quantity = data["quantity"]
+        category = data["category"]
+        updated = inventory_class.update_product(product_name, price, quantity, category)
+        if updated:
+            return render_template("inventory.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not update product"}), 200
 
-    @app.route()
+    @app.route("/inventory/track")
     def track_stock():
-        pass
+        lowStock_limit = request.args.get("lowStock_limit", 4)
+        tracked = inventory_class.track_inventory(lowStock_limit)
+        if tracked:
+            return render_template("inventory.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not track inventory"}), 200
     
-    @app.route()
+    @app.route("/inventory")
     def find_product():
-        pass
+        name = request.form["inventory-search"]
 
-    @app.route("/index")
+        found = inventory_class.find_product(name)
+        
+        if found:
+            return render_template ("inventory.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not find product"}), 200
+
+    @app.route("/sales")
     def sales_report(): 
-        pass
+        unlocked = report.form["is_unlocked"]
 
-    @app.route()
+        if unlocked:
+            report = manager_class.view_sales_report()
+            if report:
+                return render_template ("sales.html")
+        
+        return jsonify({"status": "fail", "message": "could not view report"}), 200
+
+
+    @app.route("/orderAhead")
     def order_ahead():
-        pass
+        item = request.form["oa-item-select"]
+        quantity = request.form["oa-qty"]
+        time = request.form["oa-pickup-time"]
+        ordered = customer_class.order_ahead(item, quantity, time)
 
-    @app.route()
+        if ordered:
+            return render_template ("orderAhead.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not order ahead"}), 200
+
+    @app.route("/maintenance")
     def request_maintance():
-        pass
+        data = request.get_json()
+        code = data["code"]
+        message = data["message"]
+        requested = manager_class.request_maintance(code, message)
+        if requested:
+            return render_template("maintenanceRequest.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not request maintenance"}), 200
 
-    @app.route()
+    @app.route("/bills/print")
     def print_reciepts():
-        pass
+        receipt_id = request.form["receipt-id"]
+        printed = manager_class.print_reciept(receipt_id)
+        if printed:
+            return render_template("bills.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not print receipt"}), 200
 
-    @app.route()
+    @app.route("/rate")
     def rate_items():
-        pass
+        data = request.get_json()
+        customer_email = data["customer_email"]
+        item_name = data["item_name"]
+        rating = data["rating"]
+        rated = customer_class.rate_item(customer_email, item_name, rating)
+        if rated["success"]:
+            return render_template("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": rated["message"]}), 200
 
-    @app.route()
+    @app.route("/settings")
     def feedback():
-        pass
+        customer_email = request.form["customer_email"]
+        feedback = request.form["feedbackInput"]
+        recived = customer_class.give_feedback(customer_email, feedback)
+        if recived["success"]:
+            return render_template("settings.html")
+        else:
+            return jsonify({"status": "fail", "message": recived["message"]}), 200
+        
 
-    @app.route()
+    @app.route("/inventory/category")
     def add_categories():
-        pass
+        category_name = request.form["category_name"]
+        added = inventory_class.add_categories(category_name)
+        if added:
+            return render_template("inventory.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not add category"}), 200
 
-    @app.route()
+    @app.route("/inventory/category/add")
     def add_items_to_categories():
-        pass
+        item_ID = request.form["item_ID"]
+        category = request.form["category"]
+        added = inventory_class.add_item_to_category(item_ID, category)
+        if added:
+            return render_template("inventory.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not add item to category"}), 200
+
+
+    # cant find a place to reset password from index.html
+    # cant find where to request refund on frontend
+    # for order ahead - do not need order id and need a way to remove items after adding items
+    # can't find where to update product count
+    # you can request maintance without admin code (should also take message) in frontend and request maintance page is blank
+    # can't find where to print reciept
+    # can't find where to add category or add item to category
+    # item can only be rated on order ahead (maybe seperate page for rate items)
+    # can't find where to update product count or track inventory stock

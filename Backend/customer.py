@@ -42,62 +42,48 @@ class Customer:
             "remaining_points": new_points
         }
     
-    def order_ahead(self, customer_email, items, tip=0.0, note=None): # Dariya
+    def order_ahead(self, item_name, quantity, pickup_time, customer_email = "orderAhead@email.com"):
         """
-        The order is completed online by customer and it will create a receipt and transaction
-        :param customer_email: email of the customer placing the order
-        :param items: list of items to order
-        :param tip: tip amount to include in the order (default 0.0)
-        :param note: optional note for the receipt
+        Allows a customer to order an item ahead for pickup.
+        Stores the order in the receipt and receipt_item tables.
         """
         try:
-            if not backend.run_query("SELECT email FROM customer WHERE email = %s;", (customer_email,)):
+            # Check if customer exists
+            customer = backend.run_query("SELECT email FROM customer WHERE email = %s;", (customer_email,))
+            if not customer:
                 return {"success": False, "message": "Customer not found"}
-            subtotal = 0
-            total_tax =0
-            item_data = []
-            # validate each item 
-            for item in items:
-                result = backend.run_query("SELECT item_id, quantity, price, tax_rate FROM inventory_item WHERE item_name = %s;", (item["item_name"],))
-                if not result or result[0][1] < item.get("quantity", 1):
-                    return {"success": False, "message": f"Not enough {item['item_name']} available"}
-                # store item info for later use
-                item_data.append({
-                    "item_id": result[0][0],
-                    "price": float(result[0][2]),
-                    "tax_rate": float(result[0][3]),
-                    "quantity": item.get("quantity", 1)
-                })
-            query = "INSERT INTO receipt (customer_email, total_amount, amount_due, note) VALUES (%s, 0, 0, %s);"
-            backend.run_query(query, (customer_email, note))
-            receipt_id = int(backend.run_query("SELECT LAST_INSERT_ID() AS receipt_id;")[0][0])
-            for item in item_data:
-                item_tax = item["price"] * item["quantity"] * item["tax_rate"]
-                backend.run_query(
-                    "INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price, item_tax) VALUES (%s, %s, %s, %s, %s);",
-                    (receipt_id, item["item_id"], item["quantity"], item["price"], item_tax)
-                )
-                backend.run_query("UPDATE inventory_item SET quantity = quantity - %s WHERE item_id = %s;", (item["quantity"], item["item_id"]))
-                subtotal += item["price"] * item["quantity"]
-                total_tax += item_tax
-            total_amount = subtotal + total_tax
-            amount_due = total_amount + tip
-            backend.run_query(
-                "UPDATE receipt SET total_amount = %s, amount_due = %s WHERE receipt_id = %s;",
-                (total_amount, amount_due, receipt_id)
-            )
-            backend.run_query(
-                "INSERT INTO transaction (customer_email, total, tip_amount, status) VALUES (%s, %s, %s, 'Completed');",
-                (customer_email, amount_due, tip)
-            )
-            return{
-                "success": True,
-                "receipt_id": receipt_id,
-                "subtotal": round(subtotal, 2),
-                "tax": round(total_tax, 2),
-                "tip": round(tip, 2),
-                "amount_due": round(amount_due, 2)
-            }
+
+            # Check if item exists and has enough quantity
+            item = backend.run_query("SELECT item_id, price, quantity FROM inventory_item WHERE item_name = %s;", (item_name,))
+            if not item:
+                return {"success": False, "message": "Item not found"}
+            item_id, price, available_qty = item[0]
+            if available_qty < quantity:
+                return {"success": False, "message": "Not enough quantity available"}
+
+            # Create a new receipt
+            total_amount = price * quantity
+            receipt_query = """
+                INSERT INTO receipt (customer_email, total_amount, amount_due, note)
+                VALUES (%s, %s, %s, %s)
+            """
+            backend.run_query(receipt_query, (customer_email, total_amount, total_amount, f"Pickup time: {pickup_time}"))
+
+            # Get the newly created receipt_id
+            receipt_id = backend.run_query("SELECT LAST_INSERT_ID();")[0][0]
+
+            # Insert into receipt_item
+            receipt_item_query = """
+                INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price)
+                VALUES (%s, %s, %s, %s)
+            """
+            backend.run_query(receipt_item_query, (receipt_id, item_id, quantity, price))
+
+            # Deduct quantity from inventory
+            update_qty_query = "UPDATE inventory_item SET quantity = quantity - %s WHERE item_id = %s"
+            backend.run_query(update_qty_query, (quantity, item_id))
+
+            return {"success": True, "message": "Order placed successfully", "pickup_time": pickup_time}
         except Exception as e:
             return {"success": False, "message": str(e)}
 
@@ -138,22 +124,15 @@ class Customer:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    def give_feedback(self, feedback): #Azul
+    def give_feedback(self, customer_email, feedback):
         """
-        Customer types feedback and it is stored in the database.
+        Stores customer feedback in the database.
         """
         try:
             if not feedback:
-                print("Cannot be empty.")
-                return False
-
-            # Insert feedback into database
-            query = """INSERT INTO customer_feedback (message) VALUES (%s)"""
-            backend.run_query(query, (feedback,))
-
-            print("Thank you!")
-            return True
-
+                return {"success": False, "message": "Feedback cannot be empty."}
+            query = "INSERT INTO customer_feedback (customer_email, message) VALUES (%s, %s)"
+            backend.run_query(query, (customer_email, feedback))
+            return {"success": True, "message": "Feedback submitted successfully."}
         except Exception as e:
-            print(f"Error: {e}")
-            return False
+            return {"success": False, "message": str(e)}

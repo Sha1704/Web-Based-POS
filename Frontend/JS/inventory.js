@@ -2,7 +2,7 @@
 // Load inventory items
 // -----------------------------
 async function loadInventory() {
-    const res = await fetch("/inventory/get");
+    const res = await fetch("/inventory/items");
     const data = await res.json();
     renderInventory(data);
 }
@@ -150,4 +150,6 @@ async function deleteItem(id) {
 
 
 // Initial load
-loadInventory();
+window.onload = function () {
+    loadInventory();
+};

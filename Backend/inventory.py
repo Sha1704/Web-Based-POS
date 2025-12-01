@@ -17,6 +17,15 @@ backend = sql.Backend(database_host, database_user, database_password, database)
 backend.run_query('use web_based_pos;')
 
 class Inventory:
+    def add_item_to_category(self, item_ID, category):
+        '''Assigns an item to a category.'''
+        try:
+            query = "UPDATE inventory_item SET category = %s WHERE item_id = %s"
+            updated = backend.run_query(query, (category, item_ID))
+            return bool(updated)
+        except Exception as e:
+            print(f"Error assigning item to category: {e}")
+            return False
     def track_inventory(self, lowStock_limit=4): # Dariya
         """
         Retrieve inventory items and prints low stock alerts
@@ -103,8 +112,7 @@ class Inventory:
         
     def add_categories(self, category_name): #Shalom
         query = "INSERT INTO category (category_name) VALUES(%s)"
-        inserted = backend.run_query(query,(category_name))
-
+        inserted = backend.run_query(query, (category_name,))
         if inserted:
             return True
         else:
