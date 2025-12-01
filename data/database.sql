@@ -11,6 +11,12 @@ CREATE TABLE user (
     PRIMARY KEY (email)
 );
 
+-- category table
+CREATE TABLE category (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(50) UNIQUE NOT NULL
+);
+
 -- Inventory Item table
 CREATE TABLE inventory_item (
     item_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -95,12 +101,6 @@ CREATE TABLE payment_method (
     FOREIGN KEY (transaction_id) REFERENCES transaction(transaction_id)
 );
 
--- category table
-CREATE TABLE category (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(50) UNIQUE NOT NULL
-);
-
 ALTER TABLE user
 ADD COLUMN admin_code INT;
 ALTER TABLE user
@@ -136,6 +136,7 @@ CREATE TABLE item_rating(
     FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
         ON DELETE CASCADE,
     UNIQUE KEY unique_rating (customer_email, item_id)
+    );
 
 CREATE TABLE customer_feedback ( 
     feedback_id INT AUTO_INCREMENT PRIMARY KEY, 
@@ -147,7 +148,7 @@ ALTER TABLE inventory_item
 ADD COLUMN avg_rating DECIMAL(3,2) DEFAULT 0.0;
 
 CREATE TABLE discount(
-    discount_percent DECIMAL(2,1) NOT NULL,
+    discount_percent DECIMAL(5,1) NOT NULL,
     discount_code VARCHAR(10) PRIMARY KEY
 );
 
