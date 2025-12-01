@@ -13,7 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script href="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
@@ -40,8 +40,15 @@
             <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
             <a href="bills.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
             <a href="orderAhead.html" class="active"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
-            <a href="sales.html" class="admin-locked d-none"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
-            <a href="inventory.html" class="admin-locked d-none"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+
+            <a id="sales-link" href="sales.html" class="admin-locked d-none">
+                <i class="fa-solid fa-chart-line me-2"></i>Sales
+            </a>
+            
+            <a id="inventory-link" href="inventory.html" class="admin-locked d-none">
+                <i class="fa-solid fa-boxes me-2"></i>Inventory
+            </a>
+            
             <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
             <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
         </nav>
@@ -108,6 +115,19 @@
     </div>
 
     <script src="../JS/orderAhead.js"></script>
+    <script src="../JS/index.js"></script>
+   <script src="../JS/admin.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem("adminUnlocked") === "true") {
+        unlockAdminSections();
+    } else {
+        clearAdminAccess();
+    }
+});
+</script>
+
 </body>
 
 </html>

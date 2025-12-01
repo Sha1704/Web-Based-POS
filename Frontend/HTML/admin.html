@@ -40,9 +40,13 @@
             <a href="bills.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
             <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
 
-            <!-- Hidden until unlocked -->
-            <a href="sales.html" class="admin-locked d-none"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
-            <a href="inventory.html" class="admin-locked d-none"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+            <a id="sales-link" href="sales.html" class="admin-locked d-none">
+                <i class="fa-solid fa-chart-line me-2"></i>Sales
+            </a>
+            
+            <a id="inventory-link" href="inventory.html" class="admin-locked d-none">
+                <i class="fa-solid fa-boxes me-2"></i>Inventory
+            </a>          
 
             <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
             <a href="admin.html" class="active"><i class="fa-solid fa-lock me-2"></i>Admin</a>
@@ -51,7 +55,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="container mt-4" style="max-width: 500px;">
-
+                
                 <h2 class="mb-3">Admin Access</h2>
                 <p class="text-muted">Enter the admin security code to unlock restricted system pages.</p>
 
@@ -59,36 +63,24 @@
                     <label for="admin-code" class="form-label"><strong>Admin Code</strong></label>
                     <input type="password" id="admin-code-input" name="admin-code-input" class="form-control mb-3" placeholder="Enter code">
 
-                    <button class="btn btn-primary w-100 mb-2" onclick="submitAdminCodeFromPage()">Unlock Access</button>
-                    <a href="index.html" class="btn btn-secondary w-100">Back to Dashboard</a>
+                 <button class="btn btn-primary w-100 mb-2" onclick="submitAdminCodeFromPage()">
+    Unlock Admin Access
+</button>
+<a href="index.html" class="btn btn-secondary w-100">Back to Dashboard</a>
 
-                    <p id="admin-error" class="text-danger mt-3" style="display:none;">
-                        Incorrect admin code.
-                    </p>
-                </div>
+<button id="admin-logout-btn" class="btn btn-warning mt-3 w-100 d-none" onclick="clearAdminAccess()">
+    Revoke Admin Access
+</button>
 
-            </div>
-        </main>
-    </div>
+<p id="admin-error" class="text-danger mt-3" style="display:none;">
+    Incorrect code.
+</p>
 
-    <script src="../JS/admin.js"></script>
-
-    <script>
-        function submitAdminCodeFromPage() {
-            const code = document.getElementById("admin-code-input").value;
-
-            if (code === ADMIN_CODE) {
-                unlockAdminSections();
-                document.getElementById("admin-error").style.display = "none";
-                alert("Admin access granted.");
-            } else {
-                document.getElementById("admin-error").style.display = "block";
-            }
-        }
-    </script>
-
+<div id="admin-success" class="alert alert-success mt-4" style="display:none;">
+    Admin access granted! Sales & Inventory are now visible.
+</div>
+</div>
+</div>
+<script src="../JS/admin.js"></script>
 </body>
-
 </html>
-
-          
