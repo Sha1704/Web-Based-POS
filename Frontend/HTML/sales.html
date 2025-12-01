@@ -98,13 +98,17 @@
     </div>
 
     <script src="../JS/sales.js"></script>
-    <script>
-        // If admin is NOT unlocked → block access
-        if (localStorage.getItem("adminUnlocked") !== "true") {
-            alert("Admin access required.");
-            window.location.href = "admin.html";
-        }
-    </script>
+    <script src="../JS/admin.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem("adminUnlocked") === "true") {
+        unlockAdminSections();
+    } else {
+        clearAdminAccess();
+    }
+});
+</script>
 
 </body>
 

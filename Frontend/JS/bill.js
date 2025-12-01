@@ -76,16 +76,6 @@ function renderBill() {
             <td>$${itemTotal.toFixed(2)}</td>
             <td>${starRating}</td>
         `;
-    <td>${item.name}</td>
-    <td>${item.qty}</td>
-    <td>$${item.price.toFixed(2)}</td>
-    <td>$${itemTotal.toFixed(2)}</td>
-    <td>
-        <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">
-            X
-        </button>
-    </td>
-`;
 
         tbody.appendChild(row);
     });

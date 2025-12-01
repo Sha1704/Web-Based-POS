@@ -28,34 +28,7 @@
     </div>
 
 </header>
-
 <body>
-    <!-- Basic Navigation Idea:
-
-        -  Home Page (this is index.html)
-            Dashboard within The Home Page should Include:
-
-                - Admin-Screen: (categories in home page should be able to be edited by Admin. 
-                Need password to access).
-
-                    - Customization-Screen: Only accessible through the Admin-screen, 
-                    Allows admin to edit categories within the Home Page.  Can 
-                    set prices as well.
-
-                - Bill-Screen: (Should be able to select multiple different **open** Bills
-                , when a bill is selected, brings up that bill, List of items will also be
-                 on a customers bill).  
-
-                    - Payment-Screen is only accessible through the Bill-Screen.  (Customer is able to 
-                    pay with cash or card, can also do split payments/apply discounts)
-
-                - Sales-Screen: Shows sales for daily, weekly, or monthly.
-
-                - Settings-Screen: Reset password, Log-out, Customer Feedback
-            
-            -->
-
-    <!-- START OF HOMEPAGE -->
 
     <body id="home-page">
         <div class="d-flex">
@@ -70,41 +43,25 @@
                 <a href="bills.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
                 <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
 
-                <a id="sales-link" href="sales.html" class="admin-locked d-none">
-                    <i class="fa-solid fa-chart-line me-2"></i>Sales
-                </a>
-                
-                <a id="inventory-link" href="inventory.html" class="admin-locked d-none">
-                    <i class="fa-solid fa-boxes me-2"></i>Inventory
-                </a>
-                
+                <!-- HIDDEN UNTIL ADMIN UNLOCKS -->
+                <a href="sales.html" class="admin-locked d-none"><i class="fa-solid fa-chart-line me-2"></i>Sales</a>
+                <a href="inventory.html" class="admin-locked d-none"><i class="fa-solid fa-boxes me-2"></i>Inventory</a>
+
                 <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
                 <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
             </nav>
-
-            <!-- Main Content -->
-            <main class="main-content">
-                <div>
-                    <h2 class="mb-3">Welcome to your POS System!</h2>
-                    <div id="product-grid" class="row g-3"></div>
-                </div>
-            </main>
         </div>
 
-        <script src="../JS/index.js"></script>
         <script src="../JS/admin.js"></script>
 
         <script>
         document.addEventListener("DOMContentLoaded", () => {
             if (localStorage.getItem("adminUnlocked") === "true") {
                 unlockAdminSections();
-            } else {
-                clearAdminAccess();
             }
         });
         </script>
         
-
     </body>
 
 </html>
