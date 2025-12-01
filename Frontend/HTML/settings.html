@@ -20,14 +20,14 @@
 </head>
 <header>
     <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-outline-warning"
-                onclick="window.location.href='maintenanceRequest.html'">
+        <button class="btn btn-outline-warning" onclick="window.location.href='maintenanceRequest.html'">
             <i class="fa-solid fa-screwdriver-wrench me-2"></i>
             Request Maintenance
         </button>
     </div>
-    
+
 </header>
+
 <body id="home-page">
 
     <div class="d-flex">
@@ -81,6 +81,7 @@
     </div>
             <div id="settings-page">
 
+                <!--Account Section-->
                 <div class="card shadow p-4" style="max-width: 400px;">
                     <h4 class="mb-3">Account</h4>
 
@@ -89,24 +90,45 @@
                     </button>
                 </div>
 
+                <!--Feedback Section-->
+                <div id="feedback-section" class="p-3">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="feedbackInput" class="form-label">Leave your feedback:</label>
+                                <textarea id="feedbackInput" class="form-control" rows="3"
+                                    placeholder="Write your feedback here..."></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+                        </div>
+                    </div>
+
+                    <!-- Display Feedback -->
+                    <div id="feedbackDisplay" class="mt-3">
+                        <p class="text-muted">No feedback yet.</p>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
 
-    <!-- Logout Script -->
-    <script src="../JS/logout.js"></script>
-   <script src="../JS/admin.js"></script>
+    <!-- Admin Unlock Logic
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    if (localStorage.getItem("adminUnlocked") === "true") {
-        unlockAdminSections();
-    } else {
-        clearAdminAccess();
-    }
-});
-</script>
+            const adminUnlocked = localStorage.getItem("adminUnlocked") === "true";
+
+            if (adminUnlocked) {
+                document.getElementById("sales-link").style.display = "block";
+                document.getElementById("inventory-link").style.display = "block";
+            }
+
+        });
+    </script> -->
+
+    <script src "../JS/settings.js"></script>
 
 </body>
-</html>
 
+</html>
