@@ -26,15 +26,15 @@ class Payment:
     
     def add_payment_method(self, receiptID, payment_type, amount): # Dariya 
         """
-        Adds payment method to transaction.
+        Adds payment method to transaction linked to a receipt
 
-        :param transaction_id: ID of transaction to add payment
+        :param receiptID: ID of receipt to add payment
         :param payment_type: Type of payment like cash or card
         :param amount: Amount paid using the method
         :return: True if payment method added successfully, otherwise False
         """
         try:
-            payment_query = 'INSERT INTO payment_method (transaction_id, payment_type, amount) VALUES (%s, %s, %s)'
+            payment_query = 'INSERT INTO payment_method (receipt_id, payment_type, amount) VALUES (%s, %s, %s)'
             backend.run_query(payment_query, (receiptID, payment_type, amount))
             return True
         
@@ -62,25 +62,26 @@ class Payment:
         eachTotal = total/numPeople
         return eachTotal
 
-    def apply_discounts(self, discount_percent: int, total: float): # Shalom
+    def apply_discounts(self, discount_code: int, total: float): # Shalom
         '''
         get discount percent and total to apply discount to as param
         return new total
         '''
-
-        new_total = total * (1 - discount_percent / 100)
+        query = "SELECT discount_percent FROM discount WHERE discount_code = %s"
+        code = backend.run_query(query, (discount_code,))
+        new_total = total * (1 - code[0] / 100)
         return new_total
 
     def add_tips(self, receiptID, tip_amount): # Dariya
         """
-        Adds tip to existing transaction.
+        Adds tip to existing transaction linked to a receipt
 
-        :param transaction_id: ID of transaction to add tip
+        :param receiptID: ID of receipt to add tip
         :param tip_amount: Tip amount to add
         :return: True if tip added successfully, otherwise False
         """
         try:
-            tip_query = 'UPDATE transaction SET tip_amount = tip_amount + %s WHERE transaction_id = %s'
+            tip_query = 'UPDATE transaction SET tip_amount = tip_amount + %s WHERE receipt_id = %s'
             backend.run_query(tip_query, (tip_amount, receiptID))
             return True
         
@@ -95,7 +96,7 @@ class Payment:
             result = backend.run_query(query, (item,))
             if not result:
                 print(f"Item '{item}' not found in inventory.")
-                return
+                return False
             item_id = result[0][0] 
 
             query = "SELECT quantity FROM receipt_item WHERE receipt_id = %s AND item_id = %s;"
@@ -107,14 +108,17 @@ class Payment:
                 query = "UPDATE receipt_item SET quantity = %s WHERE receipt_id = %s AND item_id = %s;"
                 backend.run_query(query, (quantity, receiptID, item_id))
                 print(f"Updated {item} quantity to {quantity} for receipt {receiptID}.")
+                return True
             #create item into receipt
             else:
                 query = "INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price) VALUES (%s, %s, %s, %s);"
                 backend.run_query(query, (receiptID, item_id, quantity, price))
                 print(f"Added {quantity} x {item} to receipt {receiptID}.")
+                return True
 
         except Exception as e:
             print(f"Error adding item to SQL: {e}")
+            return False
         
 
     def remove_item_from_bill(self, item_to_remove_id, receipt_id): # Shalom
@@ -136,7 +140,7 @@ class Payment:
         Voids a transaction by marking it as canceled
         Requires a valid admin code
 
-        :param transaction_id: ID of transaction to void
+        :param receiptID: ID of receipt to void
         :param admin_email: Admin email to verify
         :param admin_code: Admin code to verify
         :return: True if transaction voided successfully, otherwise False
@@ -147,7 +151,7 @@ class Payment:
             if not result or admin_code != result[0][0]:
                 return False
             
-            void_query = "Update transaction SET status = 'Voided' WHERE transaction_id = %s"
+            void_query = "Update transaction SET status = 'Voided' WHERE receipt_id = %s"
             backend.run_query(void_query, (receiptID,))
             return True
         
