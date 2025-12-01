@@ -40,6 +40,7 @@ function addItem() {
     }
 
     const item = foodDB.find(f => f.id === itemId);
+    const price = item.price
     billItems.push({ name: item.name, qty, price: item.price });
     renderBill();
 }

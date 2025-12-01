@@ -140,3 +140,8 @@ CREATE TABLE item_rating(
 
 ALTER TABLE inventory_item
 ADD COLUMN avg_rating DECIMAL(3,2) DEFAULT 0.0;
+
+CREATE TABLE discount(
+    discount_percent DECIMAL(10,2) DEFAULT 0.00,
+    discount_code VARCHAR(10) PRIMARY KEY
+);

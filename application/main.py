@@ -34,65 +34,27 @@ class main:
     Handles user input and menu navigation.
     """
 
-    @app.route("/bill")
-    def add_to_bill():
-        # add_item_to_bill(self, receiptID, item, price, quantity) payment
-        # html does not ask for reciptID
-        # can you seperate item and price
+    @app.route("/signup")
+    def signup():
+        data = request.get_json()
+        email = data["signupInfo.email"]
+        password = data["signupInfo.password"]
+        type = data["signupInfo.user_type"]
+        question = data["signupInfo.security_question"]
+        answer =data["signupInfo.security_answer"]
 
-    @app.route("/bill")
-    def add_tip():
-        # add_tips(self, receiptID, tip_amount) payment
-        # html does not ask for reciptID
+        creatred = account_class.create_account(email, password, type, question, answer)
 
-    @app.route("/bill")
-    def add_discount():
-        # apply_discounts(self, discount_percent: int, total: float) payment #change this
-
-    @app.route("/bill")
-    def split_payment():
-        # split_payment(self, receiptID, numPeople) payment
-        # does not ask for reciept id
-
-
-    @app.route("/bill")
-    def add_payment_method():
-        # add_payment_method(self, transaction_id, payment_type, amount) payment
-        # there seems to be no backend logic to add payment method, need to understand
-
-    @app.route("/index")
-    def void_transaction():
-        # void_transaction(self, receiptID, admin_email, admin_code) payment
-        # does not ask for reciept number, admin_email and code 
-
-    @app.route("/index")
-    def approve_voided_transaction():
-        # approve_voided_transaction(self, receiptID, adminEmail, code) payment
-        # no reciept id, html does not ask for admin email and code
-
-    @app.route("/index")
-    def add_item_to_bill():
-        # add_item_to_bill(self, receiptID, item, price, quantity) payment
-        #there's no place to input bill id (it a hard coded string)
-        # need name field in the html (can't use id)
-
-    @app.route("/index") # not yet implemented
-    def sales_report():
-        # view_sales_report(self) manager
-
-    @app.route("/index") #done
-    def logout():
-        logged_out = account_class.log_out()
-
-        if logged_out [0]:
-            return render_template ("index.html")
+        if creatred:
+            return render_template ("signup.html")
         else:
-            return jsonify({"status": "fail", "message": "could not logout"}), 200
-
-    @app.route("/login") # done
+            return jsonify({"status": "fail", "message": "could not create account"}), 200
+        
+    @app.route("/login")
     def login():
-        email = request.form["email"]
-        password = request.form["password"]
+        data = request.get_json()
+        email = data["username"]
+        password = data["password"]
 
         logged_in = account_class.log_in(email, password)
 
@@ -100,29 +62,181 @@ class main:
             return render_template ("login.html")
         else:
             return jsonify({"status": "fail", "message": "could not login"}), 200
+        
 
-    @app.route("/signup") #Check (CV)
-    def signup():
-        # create_account(self, email, password, user_type, security_question, security_answer) account
+    @app.route("/settings")
+    def logout():
+        logged_out = account_class.log_out()
 
-        # no field for user_type and security question and answer
-        # ^^Implemented now double check to make sure, It gets the network error but thats because the flask isnt set up yet Frontend should be good
-
+        if logged_out [0]:
+            return render_template ("settings.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not logout"}), 200
+        
     @app.route("/resetPassword")
     def reset_password(): 
-        # password_reset(self, email, new_password, security_answer) account
+        data = request.get_json()
+        email = data["email"]
+        password = data["newPassword"]
+        answer = data["securityAnswer"]
+
+        reset = account_class.password_reset(email, password, answer)
+
+        if reset:
+            return render_template ("forgotPassword.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not reset password"}), 200
+    
+    @app.route("/bill")
+    def add_payment_method():
+        transaction_id = request.form["reciept-id"]
+        payment_type = request.form["payment-method"]
+        amount = request.form["payment-amount"]
+
+        payment_added = payment_class.add_payment_method(transaction_id, payment_type, amount)
         
-        # 2 reset password pages
-        # ^^ Marked one for delete, want a double check before deleting(CV)
-        # use current logged in email for email
-        # is there a way to check if password are the same in html or js?
-        # no field for security answer
+        if payment_added:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not add payment method"}), 200
+        
+    @app.route("/bill")
+    def split_payment():
+        data = request.get_json()
+        receiptId = data["itemId"]
+        numPeople = data["numPeople"]
 
+        payment_split = payment_class(receiptId, numPeople)
+        
+        if payment_split:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not split payment"}), 200
+        
+     
+    @app.route("/bill")
+    def add_discount():
+        data = request.get_json()
+        code = data["coupon"]
+        total = data["total"]
 
-    # right now reset password has 2 different pages, ask to be fixed (make reset password button go to reset password.html) using the reset password.html
-    # nothing for remove item from bill
-    # nothing for manage refund
-    # nothing for redeem loyalty point
-    # nothing for get security question
-    # nothing for manage refund
-    # please make sure there is a name field in the html (that how i get info into database, cant use id)
+        new_total = payment_class.apply_discounts(code, total)
+
+        if new_total != 0:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not apply discount"}), 200
+    
+    @app.route("/bill")
+    def add_tip():
+        data = request.get_json()
+        receiptId = data["itemId"]
+        tip_amount = data["tip"]
+
+        tip_added = payment_class.add_tips(receiptId, tip_amount)
+        
+        if tip_added:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not add tip"}), 200
+
+    @app.route("/bill")
+    def add_item_to_bill():
+        data = request.get_json()
+        id = data["itemId"]
+        item = data["item"]
+        price = data["price"]
+        quantity = data["qty"]
+
+        added = payment_class.add_item_to_bill(id, item, price, quantity)
+        
+        if added:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not add item to bill"}), 200
+    
+    @app.route("/bill")
+    def remove_from_bill():
+        pass
+    
+    @app.route("/bill")
+    def void_transaction():
+        receiptID = request.form["void-receipt-id"]
+        email = request.form["admin-email"]
+        code = request.form["admin-code"]
+
+        voided = payment_class.void_transaction(receiptID, email, code)
+
+        if voided:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not void transaction"}), 200
+
+    @app.route("/bill")
+    def approve_voided_transaction():
+        receiptID = request.form["void-receipt-id"]
+        email = request.form["admin-email"]
+        code = request.form["admin-code"]
+
+        approved = payment_class.void_transaction(receiptID, email, code)
+
+        if approved:
+            return render_template ("bill.html")
+        else:
+            return jsonify({"status": "fail", "message": "could not approved void transaction"}), 200
+        
+    @app.route()
+    def manage_refunds():
+        pass
+
+    @app.route()
+    def redeem_points():
+        pass
+
+    @app.route()
+    def add_to_inventory():
+        pass
+
+    @app.route()
+    def update_count():
+        pass
+
+    @app.route()
+    def track_stock():
+        pass
+    
+    @app.route()
+    def find_product():
+        pass
+
+    @app.route("/index")
+    def sales_report(): 
+        pass
+
+    @app.route()
+    def order_ahead():
+        pass
+
+    @app.route()
+    def request_maintance():
+        pass
+
+    @app.route()
+    def print_reciepts():
+        pass
+
+    @app.route()
+    def rate_items():
+        pass
+
+    @app.route()
+    def feedback():
+        pass
+
+    @app.route()
+    def add_categories():
+        pass
+
+    @app.route()
+    def add_items_to_categories():
+        pass

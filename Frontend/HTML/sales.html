@@ -104,6 +104,22 @@
             alert("Admin access required.");
             window.location.href = "admin.html";
         }
+
+        // send unlocked status to backend
+        const is_unlocked = localStorage.getItem("adminUnlocked");
+
+        fetch("/index", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ value: is_unlocked })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Server says:", data);
+        })
+        .catch(err => console.error("Error:", err));
     </script>
     
 </body>
