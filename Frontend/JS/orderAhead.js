@@ -72,9 +72,19 @@ function oa_renderOrder() {
             <td>${item.quantity}</td>
             <td>$${item.price.toFixed(2)}</td>
             <td>$${total.toFixed(2)}</td>
+             <td>
+                <div class="item-rating" data-item="${item.item_name}">
+                    <i class="fa-regular fa-star" data-value="1"></i>
+                    <i class="fa-regular fa-star" data-value="2"></i>
+                    <i class="fa-regular fa-star" data-value="3"></i>
+                    <i class="fa-regular fa-star" data-value="4"></i>
+                    <i class="fa-regular fa-star" data-value="5"></i>
+                </div>
+            </td>
         `;
 
         tbody.appendChild(row);
+        attachStarListeners(row);
     });
 
     const tax = subtotal * OA_TAX_RATE;
@@ -86,6 +96,73 @@ function oa_renderOrder() {
         <div><strong>Total: $${finalTotal.toFixed(2)}</strong></div>
     `;
 }
+
+// ---------------------------
+// Listeners for the stars
+// ---------------------------
+function attachStarListeners(row) {
+    const stars = row.querySelectorAll('.item-rating i');
+    const itemName = row.querySelector('.item-rating').dataset.item;
+    
+    let selectedRating = 0;
+
+    stars.forEach(star => {
+        const value = parseInt(star.dataset.value);
+
+        // ----- Hover in -----
+        star.addEventListener('mouseenter', () => {
+            stars.forEach(s => {
+                s.className = parseInt(s.dataset.value) <= value ? 'fa-solid fa-star' : 'fa-regular fa-star';
+            });
+        });
+
+        // ----- Hover out -----
+        star.addEventListener('mouseleave', () => {
+            stars.forEach(s => {
+                s.className = parseInt(s.dataset.value) <= selectedRating ? 'fa-solid fa-star' : 'fa-regular fa-star';
+            });
+        });
+
+        // ----- Click -----
+        star.addEventListener('click', async () => {
+            selectedRating = value;
+
+            const customerEmail = prompt("Enter your email to rate this item:");
+            if (!customerEmail) return alert("Email required to rate item.");
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/rate_item", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        customer_email: customerEmail,
+                        item_name: itemName,
+                        rating: selectedRating
+                    })
+                });
+
+                const result = await response.json();
+                alert(result.message);
+            } catch (err) {
+                alert("Failed to submit rating.");
+                console.error(err);
+            }
+        });
+    });
+}
+
+
+// ---------------------------
+// Visually show stars
+// ---------------------------
+function updateStarsUI(container, rating) {
+    container.querySelectorAll('i').forEach(star => {
+        star.className = (parseInt(star.dataset.value) <= rating)
+            ? 'fa-solid fa-star'
+            : 'fa-regular fa-star';
+    });
+}
+
 
 // ---------------------------
 // Submit order to backend

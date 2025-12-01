@@ -2,7 +2,7 @@
 // Load inventory items
 // -----------------------------
 async function loadInventory() {
-    const res = await fetch("/inventory/get"); // hook to your backend
+    const res = await fetch("/inventory/get");
     const data = await res.json();
     renderInventory(data);
 }
@@ -23,6 +23,7 @@ function renderInventory(items) {
             <td>${item.category || "—"}</td>
             <td>
                 <button class="btn btn-sm btn-warning" onclick="editItem(${item.item_id})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.item_id})">Delete</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -61,7 +62,7 @@ document.getElementById("save-new-product").addEventListener("click", async () =
     const price = Number(document.getElementById("new-item-price").value);
     const category = document.getElementById("new-item-category").value;
 
-    if (!name || price <= 0 || qty < 0) {
+    if (!name || price <= 0 || qty < 0 || !category) {
         alert("Please fill in all fields correctly.");
         return;
     }
@@ -76,6 +77,38 @@ document.getElementById("save-new-product").addEventListener("click", async () =
 
     loadInventory();
 });
+
+// -----------------------------
+// Add new category
+// -----------------------------
+document.getElementById("add-category-btn").addEventListener("click", () => {
+    const categoryInput = document.getElementById("new-category-name");
+    const categoryValue = categoryInput.value.trim();
+
+    if (!categoryValue) {
+        alert("Please enter a category name.");
+        return;
+    }
+
+    const select = document.getElementById("new-item-category");
+
+    // Check if category already exists
+    const exists = Array.from(select.options).some(opt => opt.value.toLowerCase() === categoryValue.toLowerCase());
+    if (exists) {
+        alert("This category already exists.");
+        return;
+    }
+
+    // Create new option and append
+    const newOption = document.createElement("option");
+    newOption.value = categoryValue;
+    newOption.textContent = categoryValue;
+    select.appendChild(newOption);
+    select.value = categoryValue;
+
+    alert(`Category "${categoryValue}" added.`);
+});
+
 
 // -----------------------------
 // Edit item (open modal)
@@ -104,6 +137,17 @@ async function editItem(id) {
 
     loadInventory();
 }
+
+// -----------------------------
+// Delete item (open modal)
+// -----------------------------
+async function deleteItem(id) {
+    if (!confirm("Are you sure you want to delete this item?")) return;
+
+    await fetch(`/inventory/delete?id=${id}`, { method: "POST" });
+    loadInventory();
+}
+
 
 // Initial load
 loadInventory();
