@@ -113,3 +113,8 @@ CREATE TABLE customer_feedback (
     message TEXT NOT NULL, 
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE discount(
+    discount_percent DECIMAL(2,1) NOT NULL,
+    discount_code VARCHAR(10) PRIMARY KEY
+);
