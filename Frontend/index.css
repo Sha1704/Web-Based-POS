@@ -24,6 +24,7 @@ body {
   display: block;
   padding: 10px 20px;
   transition: background-color 0.2s ease, color 0.2s ease;
+  display: block !important;
 }
 
 .sidebar a.active,
@@ -40,6 +41,15 @@ body {
   background-color: #f9fafb;
 }
 
+/* Star Hover*/
+.item-rating i {
+    cursor: pointer;
+    color: gold;
+    transition: color 0.2s;
+}
+.item-rating i.fa-regular {
+    color: lightgray;
+}
 
 /* For responsive screens */
 @media (max-width: 768px) {
@@ -51,4 +61,12 @@ body {
     margin-left: 180px;
     padding: 1.5rem;
   }
+}
+
+.admin-locked {
+  display: none !important;
+}
+
+.d-none {
+  display: none !important;
 }

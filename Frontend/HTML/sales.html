@@ -20,14 +20,14 @@
 </head>
 <header>
     <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-outline-warning"
-                onclick="window.location.href='maintenanceRequest.html'">
+        <button class="btn btn-outline-warning" onclick="window.location.href='maintenanceRequest.html'">
             <i class="fa-solid fa-screwdriver-wrench me-2"></i>
             Request Maintenance
         </button>
     </div>
-    
+
 </header>
+
 <body id="home-page">
     <div class="d-flex">
         <!-- Sidebar -->
@@ -98,6 +98,8 @@
     </div>
 
     <script src="../JS/sales.js"></script>
+    <script src="../JS/admin.js"></script>
+
     <script>
         // If admin is NOT unlocked → block access
         if (localStorage.getItem("adminUnlocked") !== "true") {
@@ -121,7 +123,7 @@
         })
         .catch(err => console.error("Error:", err));
     </script>
-    
+
 </body>
 
 </html>
