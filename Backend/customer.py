@@ -138,5 +138,22 @@ class Customer:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    def give_feedback(self): #Azul
-        pass
+    def give_feedback(self, feedback): #Azul
+        """
+        Customer types feedback and it is stored in the database.
+        """
+        try:
+            if not feedback:
+                print("Cannot be empty.")
+                return False
+
+            # Insert feedback into database
+            query = """INSERT INTO customer_feedback (message) VALUES (%s)"""
+            backend.run_query(query, (feedback,))
+
+            print("Thank you!")
+            return True
+
+        except Exception as e:
+            print(f"Error: {e}")
+            return False

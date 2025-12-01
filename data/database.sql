@@ -145,3 +145,9 @@ CREATE TABLE discount(
     discount_percent DECIMAL(10,2) DEFAULT 0.00,
     discount_code VARCHAR(10) PRIMARY KEY
 );
+
+CREATE TABLE customer_feedback ( 
+    feedback_id INT AUTO_INCREMENT PRIMARY KEY, 
+    message TEXT NOT NULL, 
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, 
+);
