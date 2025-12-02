@@ -37,20 +37,20 @@
                 <p class="text-gray-300">Cashier: Zoe S.</p>
             </div>
 
-            <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
-            <a href="bills.html"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
-            <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-house me-2"></i>Home</a>
+            <a href="{{ url_for('bills') }}"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="{{ url_for('orderAhead') }}"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
 
-            <a id="sales-link" href="sales.html" class="admin-locked d-none">
+            <a id="sales-link" href="{{ url_for('sales') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-chart-line me-2"></i>Sales
             </a>
             
-            <a id="inventory-link" href="inventory.html" class="admin-locked d-none">
+            <a id="inventory-link" href="{{ url_for('inventory') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-boxes me-2"></i>Inventory
             </a>   
 
-            <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
-            <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
+            <a href="{{ url_for('settings') }}"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+            <a href="{{ url_for('admin') }}"><i class="fa-solid fa-lock me-2"></i>Admin</a>
         </nav>
 
         <!-- Main Content -->

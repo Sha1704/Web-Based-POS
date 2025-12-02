@@ -44,12 +44,12 @@
                     <i class="fa-solid fa-chart-line me-2"></i>Sales
                 </a>
             
-            <a id="inventory-link" href="inventory.html" class="admin-locked d-none">
+            <a id="inventory-link" href="{{ url_for('inventory') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-boxes me-2"></i>Inventory
             </a>          
 
-            <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
-            <a href="admin.html" class="active"><i class="fa-solid fa-lock me-2"></i>Admin</a>
+            <a href="{{ url_for('settings') }}"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+            <a href="{{ url_for('admin') }}" class="active"><i class="fa-solid fa-lock me-2"></i>Admin</a>
         </nav>
 
         <!-- Main Content -->
