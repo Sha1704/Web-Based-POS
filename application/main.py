@@ -8,7 +8,7 @@ from dotenv import load_dotenv # you have to import dotenv (see dependencies.txt
 import os
 from flask import jsonify, request, Flask, render_template # for connecting code to backend
 
-app = Flask(__name__, template_folder="../Frontend/HTML")
+app = Flask(__name__, template_folder="../Frontend/HTML", static_folder="../Frontend/static")
 
 # Loads variables from .env in the current directory
 load_dotenv()
@@ -20,7 +20,7 @@ database_password = os.getenv("DB_PASSWORD")
 database = os.getenv("DB_DATABASE")
 
 # Create class instances.
-sql_class = sql.Backend(database_host, database_user, database_password, database)
+sql_class = sql(database_host, database_user, database_password, database)
 account_class = acc()
 payment_class = pay()
 manager_class = man()
@@ -29,6 +29,55 @@ customer_class = cust()
 
 
 class main:
+    @app.route("/")
+    def index():
+        """Home page route."""
+        return render_template("index.html")
+
+    @app.route("/settings")
+    def settings():
+        """Settings page route."""
+        return render_template("settings.html")
+
+    @app.route("/admin")
+    def admin():
+        """Admin page route."""
+        return render_template("admin.html")
+
+    @app.route("/inventory")
+    def inventory():
+        """Inventory page route."""
+        return render_template("inventory.html")
+
+    @app.route("/order_ahead")
+    def order_ahead_page():
+        """Order Ahead page route."""
+        return render_template("orderAhead.html")
+
+    @app.route("/bill")
+    def bill():
+        """Bill page route."""
+        return render_template("bill.html")
+
+    @app.route("/bills")
+    def bills():
+        """Bills overview page route."""
+        return render_template("bills.html")
+
+    @app.route("/sales")
+    def sales():
+        """Sales overview page route."""
+        return render_template("sales.html")
+
+    @app.route("/maintenanceRequest")
+    def maintenance_request():
+        """Maintenance request page route."""
+        return render_template("maintenanceRequest.html")
+
+    @app.route("/forgotPassword")
+    def forgot_password():
+        """Forgot password page route."""
+        return render_template("forgotPassword.html")
     @app.route("/inventory/items")
     def get_inventory_items():
         items = sql_class.run_query("SELECT item_id, item_name, price, quantity, category_id FROM inventory_item")
@@ -277,7 +326,7 @@ class main:
 
 
     @app.route("/orderAhead")
-    def order_ahead():
+    def orderAhead():
         item = request.form["oa-item-select"]
         quantity = request.form["oa-qty"]
         time = request.form["oa-pickup-time"]
@@ -350,6 +399,9 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not add item to category"}), 200
 
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
     # cant find a place to reset password from index.html
     # cant find where to request refund on frontend
