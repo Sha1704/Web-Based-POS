@@ -34,49 +34,49 @@ class main:
         """Home page route."""
         return render_template("index.html")
 
-    @app.route("/settings")
+    @app.route("/settings", methods=["GET", "POST"])
     def settings():
-        """Settings page route."""
+        if request.method == "POST":
+            customer_email = request.form.get("customer_email")
+            feedback = request.form.get("feedbackInput")
+            if customer_email and feedback:
+                recived = customer_class.give_feedback(customer_email, feedback)
+                if recived.get("success"):
+                    return render_template("settings.html")
+                else:
+                    return jsonify({"status": "fail", "message": recived.get("message", "Feedback error")}), 200
         return render_template("settings.html")
 
-    @app.route("/admin")
+    @app.route("/admin", methods=["GET"])
     def admin():
-        """Admin page route."""
         return render_template("admin.html")
 
-    @app.route("/inventory")
+    @app.route("/inventory", methods=["GET"])
     def inventory():
-        """Inventory page route."""
         return render_template("inventory.html")
 
-    @app.route("/order_ahead")
+    @app.route("/orderAhead", methods=["GET"])
     def order_ahead_page():
-        """Order Ahead page route."""
         return render_template("orderAhead.html")
 
-    @app.route("/bill")
+    @app.route("/bill", methods=["GET"])
     def bill():
-        """Bill page route."""
         return render_template("bill.html")
 
-    @app.route("/bills")
+    @app.route("/bills", methods=["GET"])
     def bills():
-        """Bills overview page route."""
         return render_template("bills.html")
 
-    @app.route("/sales")
+    @app.route("/sales", methods=["GET"])
     def sales():
-        """Sales overview page route."""
         return render_template("sales.html")
 
-    @app.route("/maintenanceRequest")
+    @app.route("/maintenanceRequest", methods=["GET"])
     def maintenance_request():
-        """Maintenance request page route."""
         return render_template("maintenanceRequest.html")
 
-    @app.route("/forgotPassword")
+    @app.route("/forgotPassword", methods=["GET"])
     def forgot_password():
-        """Forgot password page route."""
         return render_template("forgotPassword.html")
     @app.route("/inventory/items")
     def get_inventory_items():
