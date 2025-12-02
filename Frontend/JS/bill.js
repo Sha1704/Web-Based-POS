@@ -1,3 +1,9 @@
+//TEST DELETE LATER
+const urlParams = new URLSearchParams(window.location.search);
+const currentReceiptId = urlParams.get("receipt");
+//TEST DELETE LATER
+
+
 // Bill vars
 let billItems = [];
 let discount = 0;
@@ -84,6 +90,8 @@ function renderBill() {
 
     const tax = subtotal * TAX_RATE;
     const total = subtotal + tax + tip - discount;
+    saveBillTotal(currentReceiptId, total); //TEST
+
 
     const summaryLines = [
         `<h3>Summary</h3>`,
@@ -298,6 +306,19 @@ async function voidTransaction() {
         alert("Server error while voiding transaction.");
     }
 }
+
+// Save total into pos_bills storage so Bills page always matches
+//TEST DELETE LATER
+function saveBillTotal(receiptId, total) {
+    let storedBills = JSON.parse(localStorage.getItem("pos_bills") || "[]");
+
+    const index = storedBills.findIndex(b => b.id == receiptId);
+    if (index !== -1) {
+        storedBills[index].total = Number(total);
+        localStorage.setItem("pos_bills", JSON.stringify(storedBills));
+    }
+}
+//TEST DELETE LATER
 
 // Run on page load
 window.onload = function () {

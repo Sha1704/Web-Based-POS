@@ -1,8 +1,8 @@
 //bills.js - FIXED AND IMPROVED
 let bills = [
-    { id: 1001, total: 23.45, date: "2025-01-16 2:15 PM" },
-    { id: 1002, total: 58.90, date: "2025-01-16 2:45 PM" },
-    { id: 1003, total: 12.10, date: "2025-01-16 3:10 PM" }
+    // { id: 1001, total: 23.45, date: "2025-01-16 2:15 PM" },
+    // { id: 1002, total: 58.90, date: "2025-01-16 2:45 PM" },
+    // { id: 1003, total: 12.10, date: "2025-01-16 3:10 PM" }
 ];
 
 // Optional: Load from localStorage 
@@ -13,7 +13,6 @@ function loadBillsFromStorage() {
     }
 }
 loadBillsFromStorage();
-
 // Save to localStorage whenever bills change
 function saveBills() {
     localStorage.setItem('pos_bills', JSON.stringify(bills));
