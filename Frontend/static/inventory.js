@@ -19,7 +19,7 @@ function renderInventory(items) {
         tr.innerHTML = `
             <td>${item.item_name}</td>
             <td>${item.quantity}</td>
-            <td>$${item.price.toFixed(2)}</td>
+            <td>${item.price?.toFixed(2) || "0.00"}</td>
             <td>${item.category || "—"}</td>
             <td>
                 <button class="btn btn-sm btn-warning" onclick="editItem(${item.item_id})">Edit</button>

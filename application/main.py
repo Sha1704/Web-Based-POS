@@ -10,7 +10,6 @@ from Backend.manager import Manager as man
 from Backend.payment import Payment as pay
 from Backend.user_account import Account as acc
 from dotenv import load_dotenv # you have to import dotenv (see dependencies.txt file)
-import os
 from flask import jsonify, request, Flask, render_template # for connecting code to backend
 
 app = Flask(__name__, template_folder="../Frontend/HTML", static_folder="../Frontend/static")
