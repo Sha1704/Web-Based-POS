@@ -104,7 +104,7 @@
         // If admin is NOT unlocked → block access
         if (localStorage.getItem("adminUnlocked") !== "true") {
             alert("Admin access required.");
-            window.location.href = "admin.html";
+            window.location.href = "{{ url_for('admin') }}";
         }
 
         // send unlocked status to backend

@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from data.backend_sql import Backend as sql
 from Backend.customer import Customer as cust
 from Backend.inventory import Inventory as invent
