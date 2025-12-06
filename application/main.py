@@ -32,7 +32,6 @@ manager_class = man()
 inventory_class = invent()
 customer_class = cust()
 
-
 class main:
     @app.route("/")
     def index():
@@ -396,16 +395,16 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not find product"}), 200
 
-    @app.route("/sales")
-    def sales_report(): 
-        unlocked = report.form["is_unlocked"]
+    # @app.route("/sales")
+    # def sales_report(): 
+    #     unlocked = report.form["is_unlocked"]
 
-        if unlocked:
-            report = manager_class.view_sales_report()
-            if report:
-                return render_template ("sales.html")
+    #     if unlocked:
+    #         report = manager_class.view_sales_report()
+    #         if report:
+    #             return render_template ("sales.html")
         
-        return jsonify({"status": "fail", "message": "could not view report"}), 200
+    #     return jsonify({"status": "fail", "message": "could not view report"}), 200
 
 
     @app.route("/orderAhead")
@@ -486,9 +485,42 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not add item to category"}), 200
 
+@app.route("/sales/report", methods=["GET"])
+def sales_report_api():
+    try:
+        print("HIT /sales/report")  # debug
 
+        query = """
+            SELECT receipt_id, customer_email, total_amount, created_at
+            FROM receipt
+            ORDER BY created_at DESC
+        """
+        rows = sql_class.run_query(query) or []
+
+        print("RAW ROWS FROM DB:", rows)  # debug
+
+        sales = []
+        for r in rows:
+            sales.append({
+                "receipt_id": int(r[0]),
+                "customer_email": r[1],
+                "total_amount": float(r[2]) if r[2] is not None else 0.0,
+                "created_at": r[3].isoformat() if hasattr(r[3], "isoformat") else str(r[3])
+            })
+
+        print("RETURNING SALES JSON:", sales)  # debug
+        return jsonify(sales), 200
+
+    except Exception as e:
+        print("Sales report API error:", e)
+        return jsonify([]), 500
+
+
+      
 if __name__ == "__main__":
     app.run(debug=True)
+    
+
 
     # cant find a place to reset password from index.html
     # cant find where to request refund on frontend

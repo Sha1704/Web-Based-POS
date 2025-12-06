@@ -89,12 +89,12 @@
                         <thead>
                             <tr>
                                 <th>Order ID</th>
-                                <th>Date</th>
+                                <th>Customer</th>
                                 <th>Total</th>
-                                <th>Items</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody id="sales-body"></tbody>
                     </table>
                 </div>
 
@@ -103,31 +103,16 @@
     </div>
 
     <script src="{{ url_for('static', filename='sales.js') }}"></script>
-    <script src="../JS/admin.js"></script>
+    <script src="{{ url_for('static', filename='admin.js') }}"></script>
 
     <script>
-        // If admin is NOT unlocked → block access
-        if (localStorage.getItem("adminUnlocked") !== "true") {
-            alert("Admin access required.");
-            window.location.href = "{{ url_for('admin') }}";
-        }
-
-        // send unlocked status to backend
-        const is_unlocked = localStorage.getItem("adminUnlocked");
-
-        fetch("/index", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ value: is_unlocked })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("Server says:", data);
-        })
-        .catch(err => console.error("Error:", err));
+    // Block access if admin not unlocked
+    if (localStorage.getItem("adminUnlocked") !== "true") {
+        alert("Admin access required.");
+        window.location.href = "{{ url_for('admin') }}";
+    }
     </script>
+
 
 </body>
 

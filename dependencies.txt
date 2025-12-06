@@ -34,4 +34,3 @@ pip install boto3 requests
 
 TO INSTALL FLASK (for connecting backend code to html)
 
-pip install FLASK
