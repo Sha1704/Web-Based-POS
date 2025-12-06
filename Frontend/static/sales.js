@@ -1,6 +1,3 @@
-// sales.js
-
-// Format ISO datetime to readable string (simple)
 function formatDate(iso) {
     try {
         const d = new Date(iso);
@@ -47,7 +44,7 @@ function renderSalesReport(sales) {
         tbody.appendChild(tr);
     });
 
-    // Update summary cards
+    // Update summary 
     const avg = totalOrders > 0 ? (totalSales / totalOrders) : 0;
     const totalEl = document.getElementById("sales-total");
     const ordersEl = document.getElementById("sales-orders");

@@ -33,9 +33,6 @@ window.submitAdminCodeFromPage = async function () {
         return;
     }
 
-    // Optional: quick client-side fallback (still do server check)
-    // if (code === ADMIN_CODE) { ... }  // not secure; server must authorize
-
     try {
         const response = await fetch("/api/check-admin", {
             method: "POST",
