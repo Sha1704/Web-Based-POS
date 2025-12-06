@@ -17,15 +17,15 @@ function renderInventory(items) {
     items.forEach(item => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${item.item_name}</td>
-            <td>${item.quantity}</td>
-            <td>$${item.price.toFixed(2)}</td>
-            <td>${item.category || "—"}</td>
-            <td>
-                <button class="btn btn-sm btn-warning" onclick="editItem(${item.item_id})">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.item_id})">Delete</button>
-            </td>
-        `;
+        <td>${item[1]}</td>
+        <td>${item[2]}</td>
+        <td>${item[3]}</td>
+        <td>${item[4]}</td>
+        <td>
+            <button class="btn btn-sm btn-warning" onclick="editItem(${item[0]})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem(${item[0]})">Delete</button>
+        </td>
+    `;
         tbody.appendChild(tr);
     });
 }
@@ -36,12 +36,14 @@ function renderInventory(items) {
 document.getElementById("inventory-search").addEventListener("input", async function () {
     const query = this.value.toLowerCase();
 
-    const res = await fetch("/inventory/get");
+    const res = await fetch("/inventory/items");
     const items = await res.json();
 
-    const filtered = items.filter(i =>
-        i.item_name.toLowerCase().includes(query)
-    );
+    const filtered = items.filter(i => {
+        const name = i[1].toLowerCase();
+        const category = i[4].toLowerCase();
+        return name.includes(query) || category.includes(query);
+    });
 
     renderInventory(filtered);
 });
@@ -57,31 +59,70 @@ document.getElementById("add-product-btn").addEventListener("click", () => {
 // Add new product
 // -----------------------------
 document.getElementById("save-new-product").addEventListener("click", async () => {
-    const name = document.getElementById("new-item-name").value;
+    const item_name = document.getElementById("new-item-name").value;
     const qty = Number(document.getElementById("new-item-qty").value);
     const price = Number(document.getElementById("new-item-price").value);
     const category = document.getElementById("new-item-category").value;
 
-    if (!name || price <= 0 || qty < 0 || !category) {
+    if (!item_name || price <= 0 || qty < 0 || !category) {
         alert("Please fill in all fields correctly.");
         return;
     }
 
-    await fetch("/inventory/add", {
+    const res = await fetch("/inventory/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, price, quantity: qty, category })
+        body: JSON.stringify({ item_name, price, quantity: qty, category_id: category })
     });
 
-    alert("Item added!");
+    if (!res.ok) {
+        const errText = await res.text();
+        console.error("Add item failed:", errText);
+        alert("Item addition failed");
+        return;
+    }
 
+    alert("Item added!");
     loadInventory();
 });
 
 // -----------------------------
+// Load categories into the dropdown
+// -----------------------------
+async function loadCategories() {
+    const res = await fetch("/inventory/categories");
+    const categories = await res.json();
+
+    // Populate the dropdown
+    const select = document.getElementById("new-item-category");
+    select.innerHTML = '<option value="">Please Select Category</option>';
+    categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat[0];
+        opt.textContent = cat[1];
+        select.appendChild(opt);
+    });
+
+    // Populate the hidden list
+    const listDiv = document.getElementById("category-list");
+    if (!listDiv) return;
+    listDiv.innerHTML = "";
+    categories.forEach(cat => {
+        const div = document.createElement("div");
+        div.className = "d-flex justify-content-between align-items-center mb-1";
+        div.innerHTML = `
+            <span>${cat[1]}</span>
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${cat[0]}, '${cat[1]}')">Delete</button>
+        `;
+        listDiv.appendChild(div);
+    });
+}
+
+
+// -----------------------------
 // Add new category
 // -----------------------------
-document.getElementById("add-category-btn").addEventListener("click", () => {
+document.getElementById("add-category-btn").addEventListener("click", async () => {
     const categoryInput = document.getElementById("new-category-name");
     const categoryValue = categoryInput.value.trim();
 
@@ -90,25 +131,56 @@ document.getElementById("add-category-btn").addEventListener("click", () => {
         return;
     }
 
-    const select = document.getElementById("new-item-category");
+    try {
+        const res = await fetch("/inventory/category", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category_name: categoryValue })
+        });
 
-    // Check if category already exists
-    const exists = Array.from(select.options).some(opt => opt.value.toLowerCase() === categoryValue.toLowerCase());
-    if (exists) {
-        alert("This category already exists.");
-        return;
+        const data = await res.json();
+
+        if (res.ok && data.status === "success") {
+            // Reload categories from DB
+            await loadCategories();
+            categoryInput.value = "";
+            alert(`Category "${categoryValue}" added.`);
+        } else {
+            alert(`Failed to add category: ${data.message}`);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error adding category");
     }
-
-    // Create new option and append
-    const newOption = document.createElement("option");
-    newOption.value = categoryValue;
-    newOption.textContent = categoryValue;
-    select.appendChild(newOption);
-    select.value = categoryValue;
-
-    alert(`Category "${categoryValue}" added.`);
 });
 
+// -----------------------------
+// Delete category
+// -----------------------------
+async function deleteCategory(categoryId, categoryName) {
+    if (!confirm(`Are you sure you want to delete category "${categoryName}"?`)) return;
+
+    try {
+        const res = await fetch("/inventory/category/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category_id: categoryId })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.status === "success") {
+            alert(`Category "${categoryName}" deleted.`);
+            await loadCategories();
+            loadInventory();
+        } else {
+            alert(`Failed to delete category: ${data.message}`);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error deleting category");
+    }
+}
 
 // -----------------------------
 // Edit item (open modal)
@@ -117,26 +189,80 @@ async function editItem(id) {
     const res = await fetch(`/inventory/get?id=${id}`);
     const item = await res.json();
 
-    const newName = prompt("Item Name:", item.item_name);
-    const newQty = prompt("Quantity:", item.quantity);
-    const newPrice = prompt("Price:", item.price);
-    const newCat = prompt("Category:", item.category);
+    // Fill form values
+    document.getElementById("edit-item-id").value = item.item_id;
+    document.getElementById("edit-item-name").value = item.item_name;
+    document.getElementById("edit-item-qty").value = item.quantity;
+    document.getElementById("edit-item-price").value = item.price;
 
-    if (!newName || !newQty || !newPrice) return;
+    const categorySelect = document.getElementById("edit-item-category");
+    categorySelect.innerHTML = ""; // Clear existing options
 
-    await fetch("/inventory/update", {
+    const categoriesRes = await fetch("/inventory/categories");
+    const categories = await categoriesRes.json();
+
+    categories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat[0]; // category_name
+        option.textContent = cat[1];
+        if (cat[1] === item.category) option.selected = true;
+        categorySelect.appendChild(option);
+    });
+
+    // Show the form
+    document.getElementById("edit-product-form").classList.remove("d-none");
+}
+
+// -----------------------------
+// Save edits
+// -----------------------------
+document.getElementById("save-edit-product").addEventListener("click", async () => {
+    const id = document.getElementById("edit-item-id").value;
+    const name = document.getElementById("edit-item-name").value.trim();
+    const qty = Number(document.getElementById("edit-item-qty").value);
+    const price = Number(document.getElementById("edit-item-price").value);
+    const category = document.getElementById("edit-item-category").value;
+
+    if (!name || price <= 0 || qty < 0 || !category) {
+        alert("Please fill all fields correctly.");
+        return;
+    }
+
+    const res = await fetch("/inventory/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            product_name: newName,
-            quantity: Number(newQty),
-            price: Number(newPrice),
-            category: newCat
+            id: id,
+            product_name: name,
+            quantity: qty,
+            price: price,
+            category
         })
     });
 
-    loadInventory();
-}
+    const data = await res.json();
+    if (res.ok && data.status === "success") {
+        loadInventory();
+        document.getElementById("edit-product-form").classList.add("d-none");
+    } else {
+        alert(`Failed to update product: ${data.message}`);
+    }
+});
+
+// -----------------------------
+// Cancel edits
+// -----------------------------
+document.getElementById("cancel-edit").addEventListener("click", () => {
+    document.getElementById("edit-product-form").classList.add("d-none");
+});
+
+// -----------------------------
+// Manage Categories
+// -----------------------------
+document.getElementById("toggle-category-list").addEventListener("click", () => {
+    const listDiv = document.getElementById("category-list");
+    listDiv.classList.toggle("d-none");
+});
 
 // -----------------------------
 // Delete item (open modal)
@@ -148,8 +274,8 @@ async function deleteItem(id) {
     loadInventory();
 }
 
-
 // Initial load
 window.onload = function () {
     loadInventory();
+    loadCategories();
 };

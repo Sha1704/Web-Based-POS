@@ -42,7 +42,8 @@ class Customer:
             "remaining_points": new_points
         }
     
-    def order_ahead(self, item_name, quantity, pickup_time, customer_email = "orderAhead@email.com"):
+    # def order_ahead(self, item_name, quantity, pickup_time, customer_email = "orderAhead@email.com"):
+    def order_ahead(self, item_name, quantity, pickup_time, customer_email):
         """
         Allows a customer to order an item ahead for pickup.
         Stores the order in the receipt and receipt_item tables.
@@ -71,7 +72,6 @@ class Customer:
 
             # Get the newly created receipt_id
             receipt_id = backend.run_query("SELECT LAST_INSERT_ID();")[0][0]
-
             # Insert into receipt_item
             receipt_item_query = """
                 INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price)

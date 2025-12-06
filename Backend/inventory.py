@@ -58,7 +58,7 @@ class Inventory:
                 return False
             
             #add to the database
-            insertQuery = 'INSERT INTO inventory_item (item_name, price, quantity, category) VALUES (%s, %s, %s, %s)'
+            insertQuery = 'INSERT INTO inventory_item (item_name, price, quantity, category_id) VALUES (%s, %s, %s, %s)'
             backend.run_query(insertQuery, (name, price, quantity, category))
             print(f"Added successfully")
             return True
@@ -68,21 +68,21 @@ class Inventory:
             return False
 
 
-    def update_product(self,product_name, price, quantity, category): # Shalom
+    def update_product(self, item_id, product_name, price, quantity, category_id): # Shalom
         '''
         update product's price, quantity and category
         returns true or false based on successful update
         '''
         try:
-            query = 'UPDATE inventory_item SET price = %s, quantity = %s, category = %s WHERE item_name = %s'
+            query = '''
+            UPDATE inventory_item 
+            SET item_name = %s, price = %s, quantity = %s, category_id = %s
+            WHERE item_id = %s
+            '''
 
-            result = backend.run_query(query, (price, quantity, category, product_name))
+            backend.run_query(query, (product_name, price, quantity, category_id, item_id))
 
-            if not result:
-                return False
-            
-            if result:
-                return True
+            return True
             
         except Exception as e:
             print(f"An exception occoured {e}")
@@ -117,6 +117,21 @@ class Inventory:
             return True
         else:
             return False
+        
+    def delete_category(self, category_id):
+        try:
+            check_query = "SELECT item_id FROM inventory_item WHERE category_id = %s"
+            assigned_items = backend.run_query(check_query, (category_id,))
+            if assigned_items:
+                print(f"Cannot delete category {category_id}: items are assigned to it.")
+                return False
+
+            query = "DELETE FROM category WHERE category_id = %s"
+            deleted = backend.run_query(query, (category_id,))
+            return bool(deleted)
+        except Exception as e:
+            print(f"Error deleting category: {e}")
+            return False
 
     def add_item_to_category(self, item_ID, category): #Shalom
 
@@ -132,4 +147,13 @@ class Inventory:
             else:
                 return False
         else:
+            return False
+        
+    def delete_item(self, item_id):
+        try:
+            query = "DELETE FROM inventory_item WHERE item_id = %s"
+            result = backend.run_query(query, (item_id,))
+            return bool(result)
+        except Exception as e:
+            print(f"Error deleting item: {e}")
             return False

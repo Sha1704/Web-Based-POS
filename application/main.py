@@ -10,7 +10,6 @@ from Backend.manager import Manager as man
 from Backend.payment import Payment as pay
 from Backend.user_account import Account as acc
 from dotenv import load_dotenv # you have to import dotenv (see dependencies.txt file)
-import os
 from flask import jsonify, request, Flask, render_template # for connecting code to backend
 
 app = Flask(__name__, template_folder="../Frontend/HTML", static_folder="../Frontend/static")
@@ -192,6 +191,20 @@ class main:
     @app.route("/forgotPassword", methods=["GET"])
     def forgot_password():
         return render_template("forgotPassword.html")
+    
+    @app.route("/inventory/items")
+    def get_inventory_items():
+        query = """
+            SELECT i.item_id,
+            i.item_name AS name,
+            i.quantity AS quant,
+            i.price,
+            c.category_name AS category
+        FROM inventory_item i
+        LEFT JOIN category c ON i.category_id = c.category_id;
+        """
+        items = sql_class.run_query(query)
+        return jsonify(items)
 
     @app.route("/signup")
     def signup():
@@ -347,34 +360,56 @@ class main:
         if removed:
             payment_class.update_receipt_totals(receipt_id)
 
-        return jsonify({"success": bool(removed)})
-    
-    @app.route("/inventory")
+    @app.route("/inventory/add", methods=["POST"])
     def add_to_inventory():
-        name = request.form["new-item-name"]
-        price = request.form["new-item-price"]
-        quant = request.form["new-item-qty"]
-        cat = request.form["new-item-category"]
+        data = request.get_json()
+        name = data["item_name"]
+        price = data["price"]
+        quantity = data["quantity"]
+        category_id = data["category_id"]
 
-        added = inventory_class.add_to_inventory(name, price, quant, cat)
+        added = inventory_class.add_to_inventory(name, price, quantity, category_id)
 
         if added:
-            return render_template ("inventory.html")
+            return jsonify({"status": "success"}), 200
         else:
-            return jsonify({"status": "fail", "message": "could not add to inventory"}), 200
+            return jsonify({"status": "fail", "message": "Could not add item"}), 500
 
-    @app.route("/inventory/update")
-    def update_count():
+    @app.route("/inventory/update", methods=["POST"])
+    def update_product():
         data = request.get_json()
+
+        item_id = data["id"]
         product_name = data["product_name"]
         price = data["price"]
         quantity = data["quantity"]
-        category = data["category"]
-        updated = inventory_class.update_product(product_name, price, quantity, category)
+        category_id = data["category"]
+
+        updated = inventory_class.update_product(
+            item_id,
+            product_name,
+            price,
+            quantity,
+            category_id
+        )
+
         if updated:
-            return render_template("inventory.html")
+            return jsonify({"status": "success"}), 200
         else:
-            return jsonify({"status": "fail", "message": "could not update product"}), 200
+            return jsonify({"status": "fail", "message": "Could not update product"}), 500
+
+    @app.route("/inventory/delete", methods=["POST"])
+    def delete_inventory_item():
+        item_id = request.args.get("id")
+        if not item_id:
+            return jsonify({"status": "fail", "message": "No item ID provided"}), 400
+
+        deleted = inventory_class.delete_item(item_id)
+        if deleted:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"status": "fail", "message": "Could not delete item"}), 500
+
 
     @app.route("/inventory/track")
     def track_stock():
@@ -385,6 +420,39 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not track inventory"}), 200
     
+    @app.route("/inventory/get")
+    def get_inventory_item():
+        item_id = request.args.get("id")
+        if not item_id:
+            return jsonify({"status": "fail", "message": "No item ID provided"}), 400
+
+        # Convert to int safely
+        try:
+            item_id = int(item_id)
+        except ValueError:
+            return jsonify({"status": "fail", "message": "Invalid item ID"}), 400
+
+        # Fetch item from your Inventory class
+        query = "SELECT i.item_id, i.item_name, i.quantity, i.price, c.category_name AS category " \
+                "FROM inventory_item i LEFT JOIN category c ON i.category_id = c.category_id " \
+                "WHERE i.item_id = %s"
+        result = sql_class.run_query(query, (item_id,))
+
+        if not result:
+            return jsonify({"status": "fail", "message": "Item not found"}), 404
+
+        # result is usually a list of tuples; convert to dict
+        item_row = result[0]
+        item = {
+            "item_id": item_row[0],
+            "item_name": item_row[1],
+            "quantity": item_row[2],
+            "price": item_row[3],
+            "category": item_row[4],
+        }
+
+        return jsonify(item), 200
+
     @app.route("/inventory")
     def find_product():
         name = request.form["inventory-search"]
@@ -407,18 +475,23 @@ class main:
         
         return jsonify({"status": "fail", "message": "could not view report"}), 200
 
+    @app.route("/orderAhead", methods=["POST"])
+    def orderAhead_submit():
+        try:
+            data = request.get_json()
+            customer_email = data.get("customer_email")
+            items = data.get("items")           # [{item_name, quantity}, ...]
+            note = data.get("note")             # e.g., pickup time
 
-    @app.route("/orderAhead")
-    def orderAhead():
-        item = request.form["oa-item-select"]
-        quantity = request.form["oa-qty"]
-        time = request.form["oa-pickup-time"]
-        ordered = customer_class.order_ahead(item, quantity, time)
+            # If your current `order_ahead` handles only one item, loop through items
+            for item in items:
+                success = customer_class.order_ahead(customer_email, item["item_name"], item["quantity"], note)
+                if not success:
+                    return jsonify({"success": False, "message": f"Failed to add {item['item_name']}"})
 
-        if ordered:
-            return render_template ("orderAhead.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not order ahead"}), 200
+            return jsonify({"success": True, "message": "Order placed!"})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
 
     @app.route("/maintenanceRequest", methods=["GET"])
     def maintenance_request_page():
@@ -444,18 +517,28 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not print receipt"}), 200
 
-    @app.route("/rate")
+    @app.route("/rate", methods=["POST"])
     def rate_items():
-        data = request.get_json()
-        customer_email = data["customer_email"]
-        item_name = data["item_name"]
-        rating = data["rating"]
-        rated = customer_class.rate_item(customer_email, item_name, rating)
-        if rated["success"]:
-            return render_template("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": rated["message"]}), 200
+        try:
+            data = request.get_json()
+            customer_email = data.get("customer_email")
+            item_name = data.get("item_name")  # safer to use item_name
+            rating = data.get("rating")
 
+            if not customer_email or not item_name or not rating:
+                return jsonify({"success": False, "message": "Missing data"}), 400
+
+            rated = customer_class.rate_item(customer_email, item_name, rating)
+
+            if rated.get("success"):
+                # Render template on success
+                return render_template("bill.html")
+            else:
+                return jsonify({"success": False, "message": rated.get("message", "Rating failed")}), 200
+
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+        
     @app.route("/settings")
     def feedback():
         customer_email = request.form["customer_email"]
@@ -466,27 +549,70 @@ class main:
         else:
             return jsonify({"status": "fail", "message": recived["message"]}), 200
         
+    @app.route("/inventory/categories", methods=["GET"])
+    def get_categories():
+        rows = sql_class.run_query("SELECT category_id, category_name FROM category")
+        return jsonify(rows), 200
 
-    @app.route("/inventory/category")
-    def add_categories():
-        category_name = request.form["category_name"]
+    @app.route("/inventory/category", methods=["POST"])
+    def add_category():
+        data = request.get_json()
+        category_name = data.get("category_name")
+        
+        if not category_name:
+            return jsonify({"status": "fail", "message": "No category name provided"}), 400
+
         added = inventory_class.add_categories(category_name)
         if added:
-            return render_template("inventory.html")
+            return jsonify({"status": "success"}), 200
         else:
-            return jsonify({"status": "fail", "message": "could not add category"}), 200
+            return jsonify({"status": "fail", "message": "Could not add category"}), 500
+
 
     @app.route("/inventory/category/add")
     def add_items_to_categories():
         item_ID = request.form["item_ID"]
-        category = request.form["category"]
+        category = request.form["category_name"]
         added = inventory_class.add_item_to_category(item_ID, category)
         if added:
             return render_template("inventory.html")
         else:
             return jsonify({"status": "fail", "message": "could not add item to category"}), 200
+        
+    @app.route("/inventory/category/delete", methods=["POST"])
+    def delete_category():
+        data = request.get_json()
+        category_id = data.get("category_id")
 
+        if not category_id:
+            return jsonify({"status": "fail", "message": "No category ID provided"}), 400
 
+        deleted = inventory_class.delete_category(category_id)
+        if deleted:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"status": "fail", "message": "Could not delete category"}), 500
+
+    @app.route("/admin/users", methods=["GET"])
+    def get_admin_users():
+        try:
+            users = sql_class.run_query("SELECT email, user_type, security_question, security_answer FROM user_account")
+            if not users:
+                users = []
+            user_list = [
+                {
+                    "email": u[0],
+                    "user_type": u[1],
+                    "security_question": u[2],
+                    "security_answer": u[3]
+                } for u in users
+            ]
+            return jsonify(user_list)
+        except Exception as e:
+            print("Error fetching admin users:", e)
+            return jsonify({"error": "Failed to fetch users", "details": str(e)}), 500
+
+    
 if __name__ == "__main__":
     app.run(debug=True)
 

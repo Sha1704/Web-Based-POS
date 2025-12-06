@@ -49,10 +49,10 @@
             <a id="sales-link" href="{{ url_for('sales') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-chart-line me-2"></i>Sales
             </a>
-            
+
             <a id="inventory-link" href="{{ url_for('inventory') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-boxes me-2"></i>Inventory
-            </a>   
+            </a>
 
             <a href="{{ url_for('settings') }}"><i class="fa-solid fa-gear me-2"></i>Settings</a>
             <a href="{{ url_for('admin') }}"><i class="fa-solid fa-lock me-2"></i>Admin</a>
@@ -118,22 +118,51 @@
                     <div class="d-flex gap-2">
                         <select id="new-item-category" name="new-item-category" class="form-select">
                             <option value="">Please Select Category</option>
-                            <option value="New Arrivals">New Arrivals</option>
-                            <option value="Deals">Deals</option>
-                            <option value="Meals">Meals</option>
-                            <option value="Entrees">Entrees</option>
-                            <option value="Sides">Sides</option>
-                            <option value="Deserts">Deserts</option>
-                            <option value="Drinks">Drinks</option>
                         </select>
                         <input type="text" id="new-category-name" class="form-control" placeholder="Add new category">
                         <button class="btn btn-secondary" id="add-category-btn">Add</button>
+                        <button type="button" id="toggle-category-list" class="btn btn-outline-info btn-sm">
+                            Manage Categories
+                        </button>
                     </div>
+
+                    <div id="category-list" class="mt-2 d-none border p-2 rounded" style="max-height:150px; overflow-y:auto;"></div>
                 </div>
 
                 <button class="btn btn-success" id="save-new-product">Save Product</button>
             </div>
 
+            <!-- Edit Product Form -->
+            <div id="edit-product-form" class="card p-3 d-none mb-3">
+                <h5>Edit Product</h5>
+                <input type="hidden" id="edit-item-id">
+
+                <div class="mb-3">
+                    <label class="form-label">Item Name:</label>
+                    <input type="text" id="edit-item-name" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Quantity:</label>
+                    <input type="number" id="edit-item-qty" class="form-control" min="0">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Price:</label>
+                    <input type="number" id="edit-item-price" class="form-control" min="0" step="0.01">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Category:</label>
+                    <select id="edit-item-category" class="form-select"></select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" id="save-edit-product">Save Changes</button>
+                    <button class="btn btn-secondary" id="cancel-edit">Cancel</button>
+                </div>
+
+            </div>
         </main>
     </div>
 

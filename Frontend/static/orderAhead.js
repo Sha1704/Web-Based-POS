@@ -1,14 +1,6 @@
-// Temporary test menu (same idea as in bill.js)
-const oaDB = [
-    { id: 1, name: "Burger", price: 12.99 },
-    { id: 2, name: "Fries", price: 4.99 },
-    { id: 3, name: "Soda", price: 1.50 },
-    { id: 4, name: "Pizza Slice", price: 5.00 },
-    { id: 5, name: "Salad", price: 5.75 }
-];
-
-let oaItems = [];
 const OA_TAX_RATE = 0.02; // frontend display only
+let backendItems = []; // fetched from backend
+let oaItems = [];      // current order items
 
 // ---------------------------
 // Populate item dropdown
@@ -28,21 +20,29 @@ function oa_populateDropdown() {
     });
 }
 
-oa_populateDropdown();
+// ---------------------------
+// Populate item dropdown
+// ---------------------------
+function oa_populateDropdown(items) {
+    const select = document.getElementById("oa-item-select");
+    select.innerHTML = `<option value="">-- Select an item --</option>`;
+
+    items.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item[0]; // id
+        const price = parseFloat(item[3]) || 0; // convert string to number
+        opt.textContent = `${item[1]} - $${price.toFixed(2)}`;
+        select.appendChild(opt);
+    });
+}
 
 // Fetch available items for order ahead
 async function fetchOrderItems() {
     try {
         const response = await fetch("/inventory/items");
         const items = await response.json();
-        const select = document.getElementById("oa-item-select");
-        select.innerHTML = '<option value="">-- Select item --</option>';
-        items.forEach(item => {
-            const option = document.createElement("option");
-            option.value = item.item_id;
-            option.textContent = `${item.item_name} - $${item.price.toFixed(2)}`;
-            select.appendChild(option);
-        });
+        backendItems = items;
+        oa_populateDropdown(backendItems);
     } catch (err) {
         console.error("Failed to fetch order ahead items", err);
     }
@@ -57,20 +57,22 @@ window.onload = function () {
 // Add item to order
 // ---------------------------
 function oa_addItem() {
-    const itemName = document.getElementById("oa-item-select").value;
+    const itemId = document.getElementById("oa-item-select").value;
     const qty = Number(document.getElementById("oa-qty").value);
 
-    if (!itemName || qty <= 0) {
+    if (!itemId || qty <= 0) {
         alert("Choose an item and quantity.");
         return;
     }
 
-    const item = oaDB.find(f => f.name === itemName);
+    // const item = oaDB.find(f => f.name === itemName);
+    const item = backendItems.find(f => f[0] == itemId);
+    if (!item) return alert("Item not found.");
 
     oaItems.push({
-        item_name: item.name,    // backend field
-        quantity: qty,           // backend field
-        price: item.price        // used for display only
+        item_name: item[1],
+        quantity: qty,
+        price: parseFloat(item[3]) || 0  // convert string to number
     });
 
     oa_renderOrder();
@@ -154,7 +156,7 @@ function attachStarListeners(row) {
             if (!customerEmail) return alert("Email required to rate item.");
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/rate_item", {
+                const response = await fetch("http://127.0.0.1:5000/rate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
