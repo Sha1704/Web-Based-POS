@@ -5,31 +5,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Redirect to homepage
     home.addEventListener("click", () => {
-        window.location.href = "../HTML/index.html";
+        window.location.href = "/";
     });
 
-    //Test for no backend
-    form.addEventListener("submit", (e) => {
+
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
         message.textContent = "";
 
-        const username = document.getElementById("email").value.trim();
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
 
-        // Fake server response
-        setTimeout(() => {
-            if (username === "test" && password === "123") {
-                message.style.color = "green";
-                message.textContent = "Login successful!";
-                // Redirect
-                setTimeout(() => {
-                     window.location.href = "../HTML/index.html";
-                 }, 1000);
-            } else {
-                message.style.color = "red";
-                message.textContent = "Invalid username or password.";
-            }
-        }, 300);
-    });
+        if (!email || !password) {
+            message.style.color = "red";
+            message.textContent = "Email and password are required.";
+            return;
+        }
 
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({ email, password })
+            });
+
+            if (response.redirected) {
+                // Flask redirects on successful login
+                window.location.href = response.url;
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.status === "fail") {
+                message.style.color = "red";
+                message.textContent = data.message || "Login failed.";
+            }
+        } catch (err) {
+            console.error("Login error:", err);
+            message.style.color = "red";
+            message.textContent = "Server error, please try again later.";
+        }
+    });
 });
