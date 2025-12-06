@@ -1,15 +1,6 @@
-// Temporary test menu (same idea as in bill.js)
-const oaDB = [
-    { id: 1, name: "Burger", price: 12.99 },
-    { id: 2, name: "Fries", price: 4.99 },
-    { id: 3, name: "Soda", price: 1.50 },
-    { id: 4, name: "Pizza Slice", price: 5.00 },
-    { id: 5, name: "Salad", price: 5.75 }
-];
-
-let oaItems = [];
-let backendItems = []; 
 const OA_TAX_RATE = 0.02; // frontend display only
+let backendItems = []; // fetched from backend
+let oaItems = [];      // current order items
 
 // ---------------------------
 // Populate item dropdown
@@ -29,7 +20,21 @@ function oa_populateDropdown() {
     });
 }
 
-oa_populateDropdown();
+// ---------------------------
+// Populate item dropdown
+// ---------------------------
+function oa_populateDropdown(items) {
+    const select = document.getElementById("oa-item-select");
+    select.innerHTML = `<option value="">-- Select an item --</option>`;
+
+    items.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item[0]; // id
+        const price = parseFloat(item[3]) || 0; // convert string to number
+        opt.textContent = `${item[1]} - $${price.toFixed(2)}`;
+        select.appendChild(opt);
+    });
+}
 
 // Fetch available items for order ahead
 async function fetchOrderItems() {
@@ -37,15 +42,7 @@ async function fetchOrderItems() {
         const response = await fetch("/inventory/items");
         const items = await response.json();
         backendItems = items;
-        const select = document.getElementById("oa-item-select");
-        select.innerHTML = '<option value="">-- Select item --</option>';
-        items.forEach(item => {
-            const option = document.createElement("option");
-            option.value = item[0];
-            const price = item[2] || 0;
-            option.textContent = `${item[1]} - $${price}`;
-            select.appendChild(option);
-        });
+        oa_populateDropdown(backendItems);
     } catch (err) {
         console.error("Failed to fetch order ahead items", err);
     }
@@ -73,10 +70,9 @@ function oa_addItem() {
     if (!item) return alert("Item not found.");
 
     oaItems.push({
-        item_name: item[1],    // backend field
-        quantity: qty,           // backend field
-        // price: item.price        // used for display only
-        price: Number(item[2]) || 0
+        item_name: item[1],
+        quantity: qty,
+        price: parseFloat(item[3]) || 0  // convert string to number
     });
 
     oa_renderOrder();
