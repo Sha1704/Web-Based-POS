@@ -116,7 +116,12 @@
                         </select>
                         <input type="text" id="new-category-name" class="form-control" placeholder="Add new category">
                         <button class="btn btn-secondary" id="add-category-btn">Add</button>
+                        <button type="button" id="toggle-category-list" class="btn btn-outline-info btn-sm">
+                            Manage Categories
+                        </button>
                     </div>
+
+                    <div id="category-list" class="mt-2 d-none border p-2 rounded" style="max-height:150px; overflow-y:auto;"></div>
                 </div>
 
                 <button class="btn btn-success" id="save-new-product">Save Product</button>

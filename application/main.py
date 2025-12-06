@@ -491,6 +491,20 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not add item to category"}), 200
         
+    @app.route("/inventory/category/delete", methods=["POST"])
+    def delete_category():
+        data = request.get_json()
+        category_id = data.get("category_id")
+
+        if not category_id:
+            return jsonify({"status": "fail", "message": "No category ID provided"}), 400
+
+        deleted = inventory_class.delete_category(category_id)
+        if deleted:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"status": "fail", "message": "Could not delete category"}), 500
+
     @app.route("/admin/users", methods=["GET"])
     def get_admin_users():
         try:
