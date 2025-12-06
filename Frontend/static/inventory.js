@@ -162,7 +162,7 @@ async function editItem(id) {
 
     categories.forEach(cat => {
         const option = document.createElement("option");
-        option.value = cat[1]; // category_name
+        option.value = cat[0]; // category_name
         option.textContent = cat[1];
         if (cat[1] === item.category) option.selected = true;
         categorySelect.appendChild(option);
@@ -190,7 +190,13 @@ document.getElementById("save-edit-product").addEventListener("click", async () 
     const res = await fetch("/inventory/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_name: name, quantity: qty, price: price, category })
+        body: JSON.stringify({
+            id: id,
+            product_name: name,
+            quantity: qty,
+            price: price,
+            category
+        })
     });
 
     const data = await res.json();

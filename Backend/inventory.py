@@ -68,21 +68,21 @@ class Inventory:
             return False
 
 
-    def update_product(self,product_name, price, quantity, category): # Shalom
+    def update_product(self, item_id, product_name, price, quantity, category_id): # Shalom
         '''
         update product's price, quantity and category
         returns true or false based on successful update
         '''
         try:
-            query = 'UPDATE inventory_item SET price = %s, quantity = %s, category = %s WHERE item_name = %s'
+            query = '''
+            UPDATE inventory_item 
+            SET item_name = %s, price = %s, quantity = %s, category_id = %s
+            WHERE item_id = %s
+            '''
 
-            result = backend.run_query(query, (price, quantity, category, product_name))
+            backend.run_query(query, (product_name, price, quantity, category_id, item_id))
 
-            if not result:
-                return False
-            
-            if result:
-                return True
+            return True
             
         except Exception as e:
             print(f"An exception occoured {e}")

@@ -304,18 +304,21 @@ class main:
     @app.route("/inventory/update", methods=["POST"])
     def update_product():
         data = request.get_json()
+
+        item_id = data["id"]
         product_name = data["product_name"]
         price = data["price"]
         quantity = data["quantity"]
-        category_name = data["category"]
+        category_id = data["category"]
 
-        # Convert category name to ID
-        cat_row = sql_class.run_query("SELECT id FROM category WHERE category_name = %s", (category_name,))
-        if not cat_row:
-            return jsonify({"status": "fail", "message": "Category not found"}), 400
-        category_id = cat_row[0][0]
+        updated = inventory_class.update_product(
+            item_id,
+            product_name,
+            price,
+            quantity,
+            category_id
+        )
 
-        updated = inventory_class.update_product(product_name, price, quantity, category_id)
         if updated:
             return jsonify({"status": "success"}), 200
         else:
@@ -440,7 +443,7 @@ class main:
     def rate_items():
         data = request.get_json()
         customer_email = data["customer_email"]
-        item_name = data["item_name"]
+        item_name = data["name"]
         rating = data["rating"]
         rated = customer_class.rate_item(customer_email, item_name, rating)
         if rated["success"]:
