@@ -54,9 +54,118 @@ class main:
     @app.route("/admin", methods=["GET"])
     def admin():
         return render_template("admin.html")
+    
+    # Admin Access 
+    # Added by Zoe Steinkoenig 
+    # 12-05-2025
+    @app.post("/api/check-admin")
+    def check_admin():
+        data = request.get_json(silent=True) or {}
 
+        email = data.get("email")
+        code = data.get("code")
+
+        if not email or not code:
+         return jsonify({"success": False, "message": "email and code required"}), 400
+
+        try:
+            query = "SELECT admin_code FROM user WHERE email = %s"
+            result = sql_class.run_query(query, (email,))  # use sql_class instance
+
+            if result and len(result) > 0:
+                stored_code = result[0][0]  # first column from the SQL query
+                if str(stored_code) == str(code):
+                    return jsonify({"success": True}), 200
+            
+            return jsonify({"success": False}), 200
+
+        except Exception as e:
+            print("Admin Check Error:", e)
+            return jsonify({"success": False, "message": "server error"}), 500
+
+    # Flask Route: Get all Bills
+    # Zoe Steinkoenig
+    # Added 12-05-2025    
+    @app.route("/bills/all")
+    def get_all_bills():
+        query = """
+            SELECT receipt_id, customer_email, total_amount, amount_due, created_at, note
+            FROM receipt
+            WHERE amount_due > 0  -- only show active bills
+            ORDER BY created_at DESC
+        """
+        result = sql_class.run_query(query)
+        return jsonify(result)
+
+    # Flask Route: Get items for a bill (bill page)
+    # Zoe Steinkoenig
+    # 12-05-2025
+    @app.route("/bill/items")
+    def get_bill_items():
+        receipt_id = request.args.get("receipt_id")
+
+        query = """
+            SELECT r.item_line_id, r.item_id, i.item_name, 
+                r.quantity, r.item_price, r.item_tax
+            FROM receipt_item r
+            JOIN inventory_item i ON r.item_id = i.item_id
+            WHERE r.receipt_id = %s
+        """
+        result = sql_class.run_query(query, (receipt_id,))
+        return jsonify(result if result else [])
+
+    
+    # Flask: New Bill
+    # Zoe Steinkoenig
+    # 12-05-2025
+    @app.post("/bill/create")
+    def create_bill():
+        try:
+            query = """
+                INSERT INTO receipt (customer_email, total_amount, amount_due, created_at)
+                VALUES (NULL, 0, 0, NOW());
+            """
+
+            new_id = sql_class.run_insert(query)
+            print("NEW RECEIPT CREATED:", new_id)
+
+            return jsonify({"receipt_id": new_id})
+
+        except Exception as e:
+            print("Error creating bill:", e)
+            return jsonify({"error": str(e)}), 500
+
+    # Flask Route: Getting inventory Items
+    # Zoe Steinkoenig
+    # 12-05-2025
+    @app.route("/inventory/items", methods=["GET"])
+    def get_inventory_items():
+        try:
+            query = """
+                SELECT 
+                    item_id,
+                    item_name,
+                    price,
+                    quantity,
+                    category_id,
+                    tax_rate,
+                    avg_rating
+                FROM inventory_item;
+            """
+
+            result = sql_class.run_query(query)
+
+            # Return EXACTLY the SQL rows as arrays
+            return jsonify(result if result else [])
+
+        except Exception as e:
+            print("Inventory Error:", e)
+            return jsonify([]), 500
+
+        
     @app.route("/inventory", methods=["GET"])
     def inventory():
+        
         return render_template("inventory.html")
 
     @app.route("/orderAhead", methods=["GET"])
@@ -99,6 +208,8 @@ class main:
 
     @app.route("/signup")
     def signup():
+        
+        
         data = request.get_json()
         email = data["signupInfo.email"]
         password = data["signupInfo.password"]
@@ -150,135 +261,104 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not reset password"}), 200
     
-    @app.route("/bill")
+    @app.post("/bill/pay")
     def add_payment_method():
-        transaction_id = request.form["reciept-id"]
-        payment_type = request.form["payment-method"]
-        amount = request.form["payment-amount"]
+        data = request.get_json()
 
-        payment_added = payment_class.add_payment_method(transaction_id, payment_type, amount)
+        receipt_id = data.get("receipt_id")
+        payment_type = data.get("payment_type")
+        amount = float(data.get("amount"))
+
+        # 1. Record the payment
+        payment_added = payment_class.add_payment_method(receipt_id, payment_type, amount)
+
+        if not payment_added:
+            return jsonify({"success": False})
+
+        # 2. Get current amount_due
+        query = "SELECT amount_due FROM receipt WHERE receipt_id = %s"
+        result = sql_class.run_query(query, (receipt_id,))
+
+        if not result:
+            return jsonify({"success": False})
+
+        current_due = float(result[0][0])
+        new_due = max(current_due - amount, 0)
+
+        # 3. Update amount_due in receipt
+        update_query = """
+            UPDATE receipt
+            SET amount_due = %s,
+                note = %s
+            WHERE receipt_id = %s
+        """
+
+        note = "Paid" if new_due == 0 else "Partial Payment"
+
+        sql_class.run_query(update_query, (new_due, note, receipt_id))
+
+        return jsonify({
+            "success": True,
+            "new_due": new_due,
+            "status": note
+        })
         
-        if payment_added:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not add payment method"}), 200
-        
-    @app.route("/bill")
+    @app.post("/bill/split")
     def split_payment():
         data = request.get_json()
-        receiptId = data["itemId"]
-        numPeople = data["numPeople"]
+        receipt_id = data["receipt_id"]
+        num_people = data["num_people"]
 
-        payment_split = payment_class(receiptId, numPeople)
-        
-        if payment_split:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not split payment"}), 200
-        
-     
-    @app.route("/bill")
-    def add_discount():
+        success = payment_class.split_payment(receipt_id, num_people)
+
+        return jsonify({"success": bool(success)})
+
+    @app.post("/bill/discount")
+    def apply_discount():
         data = request.get_json()
         code = data["coupon"]
         total = data["total"]
 
         new_total = payment_class.apply_discounts(code, total)
 
-        if new_total != 0:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not apply discount"}), 200
-    
-    @app.route("/bill")
+        return jsonify({"success": True, "new_total": new_total})
+
+    @app.post("/bill/tip")
     def add_tip():
         data = request.get_json()
-        receiptId = data["itemId"]
+        receipt_id = data["receipt_id"]
         tip_amount = data["tip"]
 
-        tip_added = payment_class.add_tips(receiptId, tip_amount)
-        
-        if tip_added:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not add tip"}), 200
+        success = payment_class.add_tips(receipt_id, tip_amount)
 
-    @app.route("/bill")
+        return jsonify({"success": bool(success)})
+
+    @app.post("/bill/add-item")
     def add_item_to_bill():
         data = request.get_json()
-        id = data["itemId"]
-        item = data["item"]
-        price = data["price"]
-        quantity = data["qty"]
-
-        added = payment_class.add_item_to_bill(id, item, price, quantity)
-        
-        if added:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not add item to bill"}), 200
-    
-    @app.route("/bill")
-    def remove_from_bill():
-        data = request.get_json()
-        id = data["itemId"]
-        item = data["item"]
-        removed = payment_class.remove_item_from_bill(id, item)
-        if removed:
-            return render_template("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not remove item from bill"}), 200
-    
-    @app.route("/bill")
-    def void_transaction():
-        receiptID = request.form["void-receipt-id"]
-        email = request.form["admin-email"]
-        code = request.form["admin-code"]
-
-        voided = payment_class.void_transaction(receiptID, email, code)
-
-        if voided:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not void transaction"}), 200
-
-    @app.route("/bill")
-    def approve_voided_transaction():
-        receiptID = request.form["void-receipt-id"]
-        email = request.form["admin-email"]
-        code = request.form["admin-code"]
-
-        approved = payment_class.void_transaction(receiptID, email, code)
-
-        if approved:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not approved void transaction"}), 200
-        
-    @app.route("/bill/refund")
-    def manage_refunds():
-        data = request.get_json()
-        admin_code = data["admin_code"]
-        admin_email = data["admin_email"]
-        total_due = data["total_due"]
-        refund_amount = data["refund_amount"]
         receipt_id = data["receipt_id"]
-        refunded = payment_class.manage_refund(admin_code, admin_email, total_due, refund_amount, receipt_id)
-        if refunded:
-            return render_template("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not process refund"}), 200
+        item_id = data["item_id"]
+        qty = data["qty"]
+        price = data["price"]
 
-    @app.route("/bills")
-    def redeem_points():
-        email = request.form["loyalty-email"]
-        points = request.form["redeem-points"]
-        redeemed = customer_class.redeem_loyalty_point(email, points)
+        added = payment_class.add_item_to_bill(receipt_id, item_id, qty, price)
 
-        if redeemed:
-            return render_template ("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not redeem points"}), 200
+        if added:
+            payment_class.update_receipt_totals(receipt_id)
+
+        return jsonify({"success": bool(added)})
+
+
+    @app.post("/bill/remove-item")
+    def remove_item_from_bill():
+        data = request.get_json()
+        receipt_id = data["receipt_id"]
+        line_id = data["item_line_id"]
+
+        removed = payment_class.remove_item_from_bill(line_id, receipt_id)
+
+        if removed:
+            payment_class.update_receipt_totals(receipt_id)
 
     @app.route("/inventory/add", methods=["POST"])
     def add_to_inventory():
@@ -413,16 +493,20 @@ class main:
         except Exception as e:
             return jsonify({"success": False, "message": str(e)})
 
-    @app.route("/maintenance")
+    @app.route("/maintenanceRequest", methods=["GET"])
+    def maintenance_request_page():
+        return render_template("maintenanceRequest.html")
+
+    @app.post("/maintenanceRequest")
     def request_maintance():
-        data = request.get_json()
-        code = data["code"]
-        message = data["message"]
+        data = request.get_json(silent=True) or {}
+
+        code = data.get("code")
+        message = data.get("message")
+
         requested = manager_class.request_maintance(code, message)
-        if requested:
-            return render_template("maintenanceRequest.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not request maintenance"}), 200
+
+        return jsonify({"success": bool(requested)})
 
     @app.route("/bills/print")
     def print_reciepts():

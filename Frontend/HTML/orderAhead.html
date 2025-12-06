@@ -22,11 +22,15 @@
 </head>
 <header>
     <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-outline-warning"
-                onclick="window.location.href='maintenanceRequest.html'">
-            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+        <button id="maintenance-btn" class="btn btn-outline-warning">
             Request Maintenance
         </button>
+        
+        <script>
+        document.getElementById("maintenance-btn").onclick = function () {
+            window.location.href = "{{ url_for('maintenance_request_page') }}";
+        };
+        </script>
     </div>
     
 </header>

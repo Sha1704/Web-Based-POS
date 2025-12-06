@@ -19,11 +19,15 @@
 </head>
 <header>
     <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-outline-warning"
-                onclick="window.location.href='maintenanceRequest.html'">
-            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+        <button id="maintenance-btn" class="btn btn-outline-warning">
             Request Maintenance
         </button>
+        
+        <script>
+        document.getElementById("maintenance-btn").onclick = function () {
+            window.location.href = "{{ url_for('maintenance_request_page') }}";
+        };
+        </script>
     </div>    
 </header>
 <body id="home-page">
@@ -60,8 +64,13 @@
                 <p class="text-muted">Enter the admin security code to unlock restricted system pages.</p>
 
                 <div class="card shadow-sm p-4">
+                    <!--Admin Email-->
+                    <!--Added 12-05-2025-->
+                    <label for="admin-email" class="form-label"><strong>Admin Email</strong></label>
+                    <input type="email" id="admin-email-input" name="email" class="form-control mb-3" placeholder="admin@youremail.com">
+                    <!--Admin Code-->
                     <label for="admin-code" class="form-label"><strong>Admin Code</strong></label>
-                    <input type="password" id="admin-code-input" name="admin-code-input" class="form-control mb-3" placeholder="Enter code">
+                    <input type="password" id="admin-code-input" name="admin_code" class="form-control mb-3" placeholder="Enter code">
 
                  <button class="btn btn-primary w-100 mb-2" onclick="submitAdminCodeFromPage()">
     Unlock Admin Access

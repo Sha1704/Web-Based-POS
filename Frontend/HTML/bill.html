@@ -7,10 +7,9 @@
     <title>Bill</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='bill.css') }}">
-    <link rel="stylesheet" href="../index.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 
    
-
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -28,20 +27,21 @@
                 <p class="text-gray-300">Cashier: Zoe S.</p>
             </div>
 
-            <a href="index.html"><i class="fa-solid fa-house me-2"></i>Home</a>
-            <a href="bill.html" class="active"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
-            <a href="orderAhead.html"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
+            <!-- Fixed navigation here 12-05-2025 -->
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-house me-2"></i>Home</a>
+            <a href="{{ url_for('bills') }}" class="active"><i class="fa-solid fa-receipt me-2"></i>Bills</a>
+            <a href="{{ url_for('order_ahead_page') }}"><i class="fa-solid fa-bag-shopping me-2"></i>Order-Ahead</a>
 
-            <a id="sales-link" href="sales.html" class="admin-locked d-none">
+            <a id="sales-link" href="{{ url_for('sales') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-chart-line me-2"></i>Sales
             </a>
             
-            <a id="inventory-link" href="inventory.html" class="admin-locked d-none">
+            <a id="inventory-link" href="{{ url_for('inventory') }}"  class="admin-locked d-none">
                 <i class="fa-solid fa-boxes me-2"></i>Inventory
             </a>            
 
-            <a href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
-            <a href="admin.html"><i class="fa-solid fa-lock me-2"></i>Admin</a>
+            <a href="{{ url_for('settings') }}"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+            <a href="{{ url_for('admin') }}"><i class="fa-solid fa-lock me-2"></i>Admin</a>
         </nav>
 
         <!-- Main Content -->
@@ -53,12 +53,13 @@
                 <div id="left-column" style="flex: 2;">
 
                     <h2>POS System</h2>
-                    <a href="bills.html">Back to Bills</a>
+                    <!--Correct href added here-->
+                    <a href="{{ url_for('bills') }}">Back to Bills</a>
 
                     <!-- Receipt ID -->
                     <div class="mt-3">
                         <label><strong>Receipt ID</strong></label>
-                        <input type="number" id="receipt-id" name="reciept-id" placeholder="Receipt ID">
+                        <input type="number" id="receipt-id" name="reciept_id" placeholder="Receipt ID">
                     </div>
 
                     <!-- Add Items -->
@@ -81,6 +82,7 @@
                                 <th>Qty</th>
                                 <th>Price</th>
                                 <th>Total</th>
+                                <th>Rating</th>
                                 <th>Remove</th>
                             </tr>
                         </thead>
@@ -128,16 +130,42 @@
 
                     <!-- Refund Section -->
                     <h3 class="mt-4">Refund</h3>
+
                     <label for="refund-receipt-id">Receipt ID</label>
-                    <input type="number" id="refund-receipt-id" name="refund-receipt-id" placeholder="Receipt ID">
+                    <input type="number" id="refund-receipt-id" class="form-control mb-2">
+
                     <label for="refund-admin-email">Admin Email</label>
-                    <input type="email" id="refund-admin-email" name="refund-admin-email" placeholder="Admin Email">
+                    <input type="email" id="refund-admin-email" class="form-control mb-2">
+
                     <label for="refund-admin-code">Admin Code</label>
-                    <input type="password" id="refund-admin-code" name="refund-admin-code" placeholder="Admin Code">
+                    <input type="password" id="refund-admin-code" class="form-control mb-2">
+
                     <label for="refund-amount">Refund Amount</label>
-                    <input type="number" id="refund-amount" name="refund-amount" step="0.01" placeholder="Amount">
-                    <button onclick="processRefund()" class="btn btn-warning mt-2">Process Refund</button>
-                    </div>
+                    <input type="number" id="refund-amount" step="0.01" class="form-control mb-2">
+
+                    <button onclick="processRefund()" class="btn btn-warning w-100 mb-4">
+                    Process Refund
+                    </button>
+
+                    <h3 class="mt-4">Void Transaction</h3>
+
+                <label for="void-receipt-id">Receipt ID</label>
+                <input type="number" id="void-receipt-id" class="form-control mb-2" placeholder="Receipt ID">
+
+                <label for="admin-email">Admin Email</label>
+                <input type="email" id="admin-email" class="form-control mb-2" placeholder="Admin Email">
+
+                <label for="admin-code">Admin Code</label>
+                <input type="password" id="admin-code" class="form-control mb-3" placeholder="Admin Code">
+
+                <div id="void-error" class="text-danger mb-2" style="display:none;">
+                    Invalid credentials or receipt not found.
+                </div>
+
+                <button onclick="voidTransaction()" class="btn btn-danger w-100 mb-4">
+                    Void Transaction
+                </button>
+
 
                     <!-- Split Payment -->
                     <h3 class="mt-4">Split Payment</h3>
@@ -172,60 +200,32 @@
                     <button onclick="completePayment()" class="btn btn-primary mt-3">Pay</button>
 
                 </div>
+                
             </div>
-
-    <!-- VOID TRANSACTION -->
-    <div class="modal fade" id="voidModal" tabindex="-1" aria-labelledby="voidModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content p-3">
-
-                <div class="modal-header">
-                    <h5 class="modal-title" id="voidModalLabel">Void Transaction</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <label><strong>Receipt ID</strong></label>
-                    <input type="number" id="void-receipt-id" name="void-receipt-id" class="form-control mb-3"
-                        placeholder="Enter receipt ID">
-
-                    <label><strong>Admin Email</strong></label>
-                    <input type="email" id="admin-email" name="admin-email" class="form-control mb-3"
-                        placeholder="Enter admin email">
-
-                    <label><strong>Admin Code</strong></label>
-                    <input type="password" id="admin-code" name="admin-code" class="form-control mb-3"
-                        placeholder="Enter admin code">
-
-                    <div id="void-error" class="text-danger mt-2" style="display:none;">
-                        Invalid credentials or receipt not found.
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button onclick="voidTransaction()" class="btn btn-danger w-100">Confirm Void</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
         </main>
-    </div>
-  
- <!-- Bootstrap -->
- <link src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- JS -->
-    <script src="../JS/index.js"></script>
-    <script src="{{ url_for('static', filename='bill.js') }}"></script>
-    <script src="../JS/admin.js"></script>
+    
+     
+</div> <!-- closes the .d-flex wrapper -->
 
-    
-    
+
+<!-- Bootstrap JS (required for modal to work) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- APP SCRIPTS -->
+<script src="{{ url_for('static', filename='index.js') }}"></script>
+<script src="{{ url_for('static', filename='bill.js') }}"></script>
+<script src="{{ url_for('static', filename='admin.js') }}"></script>
+
+<!-- Auto-load bill -->
+<script>
+    const url = new URL(window.location.href);
+    const receiptId = url.searchParams.get("receipt_id");
+
+    if (receiptId) {
+        document.getElementById("receipt-id").value = receiptId;
+        loadBill(receiptId);
+    }
+</script>
+
 </body>
-
 </html>
-
-
-    
-    
-   

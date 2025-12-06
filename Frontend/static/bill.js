@@ -6,52 +6,92 @@ let tip = 0;
 // Split payment type (default to equal)
 let currentSplitType = "equal";
 
-// Populate select dropdown from backend data
+async function loadBill(receiptId) {
+    const response = await fetch(`/bill/items?receipt_id=${receiptId}`);
+    const items = await response.json();
+
+    billItems = items.map(item => ({
+        line_id: item[0],   // item_line_id
+        id: item[1],        // item_id
+        name: item[2],
+        qty: item[3],
+        price: Number(item[4])
+    }));
+    
+
+    console.log("Loaded billItems:", billItems);
+
+    renderBill();
+}
+
+function updateTotals() {
+    let subtotal = 0;
+    billItems.forEach(item => subtotal += item.qty * item.price);
+
+    const total = subtotal;
+    document.querySelector("#total-container div").innerText =
+        `Total: $${total.toFixed(2)}`;
+}
+
 function populateItemSelect(items) {
     const select = document.getElementById("item-select");
     select.innerHTML = '<option value="">-- Select an item --</option>';
+
     items.forEach(item => {
         const option = document.createElement("option");
-        option.value = item.item_id;
-        option.textContent = `${item.item_name} - $${item.price.toFixed(2)}`;
+        option.value = item[0];    // item_id
+        option.textContent = `${item[1]} - $${Number(item[2]).toFixed(2)}`;
         select.appendChild(option);
     });
 }
 
 async function fetchInventoryItems() {
-    try {
-        const response = await fetch("/inventory/items");
-        const items = await response.json();
-        populateItemSelect(items);
-        window.inventoryItems = items;
-    } catch (err) {
-        console.error("Failed to fetch inventory items", err);
-    }
+    const response = await fetch("/inventory/items");
+    const items = await response.json();
+    console.log("Fetched inventory:", items);  // DEBUG LINE
+    window.inventoryItems = items;
+    populateItemSelect(items);
 }
 
-// Use placeholder for now
-populateItemSelect(foodDB);
-
-function addItem() {
+async function addItem() {
     const itemSelect = document.getElementById("item-select");
     const qty = parseInt(document.getElementById("item-qty").value);
+    const receiptId = document.getElementById("receipt-id").value;
 
-    if (!itemSelect.value) return alert("Select an item first");
+    if (!receiptId) return alert("Enter a receipt ID first.");
+    if (!itemSelect.value) return alert("Select an item.");
+    if (!qty || qty < 1) return alert("Enter a valid quantity.");
 
     const itemID = parseInt(itemSelect.value);
-    const item = window.inventoryItems.find(f => f.item_id === itemID);
-    if (!item) return alert("Item not found in inventory.");
-    billItems.push({
-        id: item.item_id,
-        name: item.item_name,
-        qty: qty,
-        price: item.price
+
+    // Find inventory row (array)
+    const item = window.inventoryItems.find(f => f[0] === itemID);
+    if (!item) return alert("Item not found.");
+
+    const price = Number(item[2]);
+
+    // --- SEND TO BACKEND ---
+    const res = await fetch("/bill/add-item", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            receipt_id: receiptId,
+            item_id: itemID,
+            qty: qty,
+            price: price
+        })
     });
 
-    renderBill();
+    const data = await res.json();
+
+    if (!data.success) {
+        alert("Failed to add item to bill.");
+        return;
+    }
+
+    // --- Reload from backend ---
+    loadBill(receiptId);
 }
-
-
 
 // Tax
 const TAX_RATE = 0.02;
@@ -77,7 +117,7 @@ function renderBill() {
             <td>$${item.price.toFixed(2)}</td>
             <td>$${itemTotal.toFixed(2)}</td>
             <td>${starRating}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="removeItem(${item.id})">Remove</button></td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeItem(${index})">Remove</button></td>
         `;
         tbody.appendChild(row);
     });
@@ -136,26 +176,33 @@ function rateBillItem(itemIndex, rating) {
     });
 }
 
-//Delete Item
-
-function removeItem(id) {
-    // Remove from frontend
-    billItems = billItems.filter(item => item.id !== id);
-    renderBill();
-    // Remove from backend
+async function removeItem(index) {
     const receiptId = document.getElementById("receipt-id").value;
-    fetch("/bill", {
+    const item = billItems[index];    // item.line_id exists now
+
+    const res = await fetch("/bill/remove-item", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: id, item: billItems.find(i => i.id === id)?.name, receiptId })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.status || data.status === "fail") {
-            alert("Could not remove item from bill");
-        }
+        body: JSON.stringify({
+            receipt_id: Number(receiptId),
+            item_line_id: item.line_id
+        })
     });
+
+    const data = await res.json();
+
+    if (!data.success) {
+        alert("Failed to remove item from bill.");
+        console.error("Remove error:", data);
+        return;
+    }
+
+    // Safest: reload from backend so quantities match DB
+    loadBill(receiptId);
 }
+
+
+
 function processRefund() {
     const receipt_id = document.getElementById("refund-receipt-id").value;
     const admin_email = document.getElementById("refund-admin-email").value;
@@ -292,18 +339,41 @@ function redistributeAmount(changedIndex, total) {
 }
 
 // Complete payment
-function completePayment() {
-    const method = document.getElementById("payment-method").value;
-    alert(`Payment method selected: ${method}`);
-}
+async function completePayment() {
+    const receiptId = document.getElementById("receipt-id").value;
+    const paymentType = document.getElementById("payment-method").value;
+    const amount = parseFloat(document.getElementById("payment-amount").value);
 
-// Load receipt ID from URL if present
-function loadReceiptFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("receipt");
+    if (!receiptId || isNaN(amount) || amount <= 0) {
+        alert("Enter a valid amount and receipt ID.");
+        return;
+    }
 
-    if (id) {
-        document.getElementById("receipt-id").value = id;
+    const response = await fetch("/bill/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            receipt_id: receiptId,
+            payment_type: paymentType,
+            amount: amount
+        })
+    });
+
+    const data = await response.json();
+    console.log("PAY RESPONSE:", data);
+
+    if (data.success) {
+        alert("Payment Successful!");
+
+        // Reload bill totals
+        loadBill(receiptId);
+
+        if (data.new_due === 0) {
+            // Redirect back to bills page
+            window.location.href = "/bills";
+        }
+    } else {
+        alert("Payment failed.");
     }
 }
 
