@@ -5,24 +5,6 @@ let oaItems = [];      // current order items
 // ---------------------------
 // Populate item dropdown
 // ---------------------------
-function oa_populateDropdown() {
-    const select = document.getElementById("oa-item-select");
-    select.innerHTML = `<option value="">-- Select an item --</option>`;
-
-    oaDB.forEach(item => {
-        const opt = document.createElement("option");
-
-        // IMPORTANT: backend expects item_name
-        opt.value = item.name;
-        opt.textContent = `${item.name} - $${item.price.toFixed(2)}`;
-
-        select.appendChild(opt);
-    });
-}
-
-// ---------------------------
-// Populate item dropdown
-// ---------------------------
 function oa_populateDropdown(items) {
     const select = document.getElementById("oa-item-select");
     select.innerHTML = `<option value="">-- Select an item --</option>`;
@@ -156,7 +138,8 @@ function attachStarListeners(row) {
             if (!customerEmail) return alert("Email required to rate item.");
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/rate", {
+                // const response = await fetch("http://127.0.0.1:5000/rate", {
+                const response = await fetch("/rate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -165,9 +148,17 @@ function attachStarListeners(row) {
                         rating: selectedRating
                     })
                 });
-
-                const result = await response.json();
-                alert(result.message);
+                const contentType = response.headers.get("content-type") || "";
+                if (contentType.includes("application/json")) {
+                    const result = await response.json();
+                    // friendly message
+                    alert(result.message || (result.success ? "Rating submitted" : "Rating failed"));
+                } else {
+                    // fallback: server returned HTML or something else
+                    const text = await response.text();
+                    console.warn("Expected JSON but received:", text);
+                    alert("Server returned unexpected response. See console for details.");
+                }
             } catch (err) {
                 alert("Failed to submit rating.");
                 console.error(err);

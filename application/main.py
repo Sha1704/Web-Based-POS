@@ -520,23 +520,41 @@ class main:
     @app.route("/rate", methods=["POST"])
     def rate_items():
         try:
-            data = request.get_json()
-            customer_email = data.get("customer_email")
-            item_name = data.get("item_name")  # safer to use item_name
-            rating = data.get("rating")
-
+            # Accept either JSON (AJAX) or form data
+            if request.is_json:
+                data = request.get_json()
+                customer_email = data.get("customer_email")
+                item_name = data.get("item_name")
+                rating = data.get("rating")
+            else:
+                customer_email = request.form.get("customer_email")
+                item_name = request.form.get("item_name")
+                rating = request.form.get("rating")
             if not customer_email or not item_name or not rating:
                 return jsonify({"success": False, "message": "Missing data"}), 400
-
+            # ensure rating is sent in expected type
+            try:
+                rating = int(rating)
+            except Exception:
+                pass
             rated = customer_class.rate_item(customer_email, item_name, rating)
-
-            if rated.get("success"):
-                # Render template on success
+            if isinstance(rated, dict):
+                success = rated.get("success", False)
+                message = rated.get("message", "Rating result")
+            else:
+                # if rate_item returns boolean
+                success = bool(rated)
+                message = "Rating submitted" if success else "Rating failed"
+            if success:
+                # Return JSON for AJAX clients
+                if request.is_json:
+                    return jsonify({"success": True, "message": message}), 200
+                # form submit — show template
                 return render_template("bill.html")
             else:
-                return jsonify({"success": False, "message": rated.get("message", "Rating failed")}), 200
-
+                return jsonify({"success": False, "message": message}), 200
         except Exception as e:
+            # log exception server-side if you want: print(e)
             return jsonify({"success": False, "message": str(e)}), 500
         
     @app.route("/settings")
