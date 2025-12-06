@@ -44,10 +44,10 @@
             <a id="sales-link" href="{{ url_for('sales') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-chart-line me-2"></i>Sales
             </a>
-            
+
             <a id="inventory-link" href="{{ url_for('inventory') }}" class="admin-locked d-none">
                 <i class="fa-solid fa-boxes me-2"></i>Inventory
-            </a>   
+            </a>
 
             <a href="{{ url_for('settings') }}"><i class="fa-solid fa-gear me-2"></i>Settings</a>
             <a href="{{ url_for('admin') }}"><i class="fa-solid fa-lock me-2"></i>Admin</a>
@@ -116,7 +116,12 @@
                         </select>
                         <input type="text" id="new-category-name" class="form-control" placeholder="Add new category">
                         <button class="btn btn-secondary" id="add-category-btn">Add</button>
+                        <button type="button" id="toggle-category-list" class="btn btn-outline-info btn-sm">
+                            Manage Categories
+                        </button>
                     </div>
+
+                    <div id="category-list" class="mt-2 d-none border p-2 rounded" style="max-height:150px; overflow-y:auto;"></div>
                 </div>
 
                 <button class="btn btn-success" id="save-new-product">Save Product</button>
@@ -147,11 +152,12 @@
                     <select id="edit-item-category" class="form-select"></select>
                 </div>
 
-                <button class="btn btn-success" id="save-edit-product">Save Changes</button>
-                <button class="btn btn-secondary" id="cancel-edit">Cancel</button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" id="save-edit-product">Save Changes</button>
+                    <button class="btn btn-secondary" id="cancel-edit">Cancel</button>
+                </div>
+
             </div>
-
-
         </main>
     </div>
 

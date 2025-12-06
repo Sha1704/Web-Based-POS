@@ -304,18 +304,21 @@ class main:
     @app.route("/inventory/update", methods=["POST"])
     def update_product():
         data = request.get_json()
+
+        item_id = data["id"]
         product_name = data["product_name"]
         price = data["price"]
         quantity = data["quantity"]
-        category_name = data["category"]
+        category_id = data["category"]
 
-        # Convert category name to ID
-        cat_row = sql_class.run_query("SELECT id FROM category WHERE category_name = %s", (category_name,))
-        if not cat_row:
-            return jsonify({"status": "fail", "message": "Category not found"}), 400
-        category_id = cat_row[0][0]
+        updated = inventory_class.update_product(
+            item_id,
+            product_name,
+            price,
+            quantity,
+            category_id
+        )
 
-        updated = inventory_class.update_product(product_name, price, quantity, category_id)
         if updated:
             return jsonify({"status": "success"}), 200
         else:
@@ -441,7 +444,7 @@ class main:
         try:
             data = request.get_json()
             customer_email = data.get("customer_email")
-            item_name = data.get("item_name")
+            item_name = data.get("item_name")  # safer to use item_name
             rating = data.get("rating")
 
             if not customer_email or not item_name or not rating:
@@ -450,12 +453,14 @@ class main:
             rated = customer_class.rate_item(customer_email, item_name, rating)
 
             if rated.get("success"):
-                return jsonify({"success": True, "message": "Rating submitted successfully"}), 200
+                # Render template on success
+                return render_template("bill.html")
             else:
                 return jsonify({"success": False, "message": rated.get("message", "Rating failed")}), 200
+
         except Exception as e:
             return jsonify({"success": False, "message": str(e)}), 500
-
+        
     @app.route("/settings")
     def feedback():
         customer_email = request.form["customer_email"]
@@ -496,6 +501,20 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not add item to category"}), 200
         
+    @app.route("/inventory/category/delete", methods=["POST"])
+    def delete_category():
+        data = request.get_json()
+        category_id = data.get("category_id")
+
+        if not category_id:
+            return jsonify({"status": "fail", "message": "No category ID provided"}), 400
+
+        deleted = inventory_class.delete_category(category_id)
+        if deleted:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"status": "fail", "message": "Could not delete category"}), 500
+
     @app.route("/admin/users", methods=["GET"])
     def get_admin_users():
         try:

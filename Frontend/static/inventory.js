@@ -93,16 +93,31 @@ async function loadCategories() {
     const res = await fetch("/inventory/categories");
     const categories = await res.json();
 
+    // Populate the dropdown
     const select = document.getElementById("new-item-category");
     select.innerHTML = '<option value="">Please Select Category</option>';
-
     categories.forEach(cat => {
         const opt = document.createElement("option");
-        opt.value = cat[1];
+        opt.value = cat[0];
         opt.textContent = cat[1];
         select.appendChild(opt);
     });
+
+    // Populate the hidden list
+    const listDiv = document.getElementById("category-list");
+    if (!listDiv) return;
+    listDiv.innerHTML = "";
+    categories.forEach(cat => {
+        const div = document.createElement("div");
+        div.className = "d-flex justify-content-between align-items-center mb-1";
+        div.innerHTML = `
+            <span>${cat[1]}</span>
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${cat[0]}, '${cat[1]}')">Delete</button>
+        `;
+        listDiv.appendChild(div);
+    });
 }
+
 
 // -----------------------------
 // Add new category
@@ -139,7 +154,33 @@ document.getElementById("add-category-btn").addEventListener("click", async () =
     }
 });
 
+// -----------------------------
+// Delete category
+// -----------------------------
+async function deleteCategory(categoryId, categoryName) {
+    if (!confirm(`Are you sure you want to delete category "${categoryName}"?`)) return;
 
+    try {
+        const res = await fetch("/inventory/category/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category_id: categoryId })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.status === "success") {
+            alert(`Category "${categoryName}" deleted.`);
+            await loadCategories();
+            loadInventory();
+        } else {
+            alert(`Failed to delete category: ${data.message}`);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error deleting category");
+    }
+}
 
 // -----------------------------
 // Edit item (open modal)
@@ -162,7 +203,7 @@ async function editItem(id) {
 
     categories.forEach(cat => {
         const option = document.createElement("option");
-        option.value = cat[1]; // category_name
+        option.value = cat[0]; // category_name
         option.textContent = cat[1];
         if (cat[1] === item.category) option.selected = true;
         categorySelect.appendChild(option);
@@ -190,7 +231,13 @@ document.getElementById("save-edit-product").addEventListener("click", async () 
     const res = await fetch("/inventory/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_name: name, quantity: qty, price: price, category })
+        body: JSON.stringify({
+            id: id,
+            product_name: name,
+            quantity: qty,
+            price: price,
+            category
+        })
     });
 
     const data = await res.json();
@@ -207,6 +254,14 @@ document.getElementById("save-edit-product").addEventListener("click", async () 
 // -----------------------------
 document.getElementById("cancel-edit").addEventListener("click", () => {
     document.getElementById("edit-product-form").classList.add("d-none");
+});
+
+// -----------------------------
+// Manage Categories
+// -----------------------------
+document.getElementById("toggle-category-list").addEventListener("click", () => {
+    const listDiv = document.getElementById("category-list");
+    listDiv.classList.toggle("d-none");
 });
 
 // -----------------------------
