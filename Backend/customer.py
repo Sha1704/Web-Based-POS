@@ -42,48 +42,57 @@ class Customer:
             "remaining_points": new_points
         }
     
-    # def order_ahead(self, item_name, quantity, pickup_time, customer_email = "orderAhead@email.com"):
-    def order_ahead(self, item_name, quantity, pickup_time, customer_email):
+    def order_ahead(self, items, pickup_time, customer_email=None):
         """
         Allows a customer to order an item ahead for pickup.
         Stores the order in the receipt and receipt_item tables.
         """
         try:
-            # Check if customer exists
-            customer = backend.run_query("SELECT email FROM customer WHERE email = %s;", (customer_email,))
-            if not customer:
-                return {"success": False, "message": "Customer not found"}
-
-            # Check if item exists and has enough quantity
-            item = backend.run_query("SELECT item_id, price, quantity FROM inventory_item WHERE item_name = %s;", (item_name,))
-            if not item:
-                return {"success": False, "message": "Item not found"}
-            item_id, price, available_qty = item[0]
-            if available_qty < quantity:
-                return {"success": False, "message": "Not enough quantity available"}
-
-            # Create a new receipt
-            total_amount = price * quantity
+            if not items:
+                return {"success": False, "message": "No items to order"}
+            total_amount = 0
+            # to store (item_id, quantity, price) for insertion
+            receipt_items_data = [] 
+            # Check each item
+            for item in items:
+                item_name = item["item_name"]
+                quantity = item["quantity"]
+                # Fetch item from inventory
+                db_item = backend.run_query(
+                    "SELECT item_id, price, quantity FROM inventory_item WHERE item_name = %s;",
+                    (item_name,)
+                )
+                if not db_item:
+                    return {"success": False, "message": f"Item '{item_name}' not found"}
+                item_id, price, available_qty = db_item[0]
+                if available_qty < quantity:
+                    return {"success": False, "message": f"Not enough quantity for '{item_name}'"}
+                total_amount += price * quantity
+                receipt_items_data.append((item_id, quantity, price))
+            # Create a single receipt
             receipt_query = """
                 INSERT INTO receipt (customer_email, total_amount, amount_due, note)
                 VALUES (%s, %s, %s, %s)
             """
-            backend.run_query(receipt_query, (customer_email, total_amount, total_amount, f"Pickup time: {pickup_time}"))
-
+            backend.run_query(
+                receipt_query,
+                (customer_email, total_amount, total_amount, f"Pickup time: {pickup_time}")
+            )
             # Get the newly created receipt_id
             receipt_id = backend.run_query("SELECT LAST_INSERT_ID();")[0][0]
-            # Insert into receipt_item
+            # Insert all items in receipt_item
             receipt_item_query = """
                 INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price)
                 VALUES (%s, %s, %s, %s)
             """
-            backend.run_query(receipt_item_query, (receipt_id, item_id, quantity, price))
-
-            # Deduct quantity from inventory
-            update_qty_query = "UPDATE inventory_item SET quantity = quantity - %s WHERE item_id = %s"
-            backend.run_query(update_qty_query, (quantity, item_id))
-
-            return {"success": True, "message": "Order placed successfully", "pickup_time": pickup_time}
+            for item_id, qty, price in receipt_items_data:
+                backend.run_query(receipt_item_query, (receipt_id, item_id, qty, price))
+                # Deduct quantity from inventory
+                backend.run_query(
+                    "UPDATE inventory_item SET quantity = quantity - %s WHERE item_id = %s",
+                    (qty, item_id)
+                )
+            return {"success": True, "message": "Order placed successfully", "receipt_id": receipt_id}
         except Exception as e:
             return {"success": False, "message": str(e)}
 

@@ -479,17 +479,13 @@ class main:
     def orderAhead_submit():
         try:
             data = request.get_json()
-            customer_email = data.get("customer_email")
-            items = data.get("items")           # [{item_name, quantity}, ...]
-            note = data.get("note")             # e.g., pickup time
-
-            # If your current `order_ahead` handles only one item, loop through items
-            for item in items:
-                success = customer_class.order_ahead(customer_email, item["item_name"], item["quantity"], note)
-                if not success:
-                    return jsonify({"success": False, "message": f"Failed to add {item['item_name']}"})
-
-            return jsonify({"success": True, "message": "Order placed!"})
+            items = data.get("items")           
+            note = data.get("note")             
+            result = customer_class.order_ahead(items, note)
+            if result.get("success"):
+                return jsonify({"success": True, "message": "Order placed!"}) 
+            else:
+                return jsonify({"success": False, "message": result.get("message")})
         except Exception as e:
             return jsonify({"success": False, "message": str(e)})
 

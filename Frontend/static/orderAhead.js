@@ -212,7 +212,7 @@ async function oa_submitOrder() {
         const result = await response.json();
 
         if (result.success) {
-            alert(`Order placed successfully! Receipt #${result.receipt_id}`);
+            alert("Order placed successfully!");
 
             // Clear UI
             oaItems = [];
