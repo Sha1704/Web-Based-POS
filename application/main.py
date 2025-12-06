@@ -55,6 +55,35 @@ class main:
     @app.route("/admin", methods=["GET"])
     def admin():
         return render_template("admin.html")
+    
+    # Admin Access 
+    # Added by Zoe Steinkoenig 
+    # 12-05-2025
+    @app.post("/api/check-admin")
+    def check_admin():
+        data = request.get_json(silent=True) or {}
+
+        email = data.get("email")
+        code = data.get("code")
+
+        if not email or not code:
+         return jsonify({"success": False, "message": "email and code required"}), 400
+
+        try:
+            query = "SELECT admin_code FROM user WHERE email = %s"
+            result = sql_class.run_query(query, (email,))  # use sql_class instance
+
+            if result and len(result) > 0:
+                stored_code = result[0][0]  # first column from the SQL query
+                if str(stored_code) == str(code):
+                    return jsonify({"success": True}), 200
+            
+            return jsonify({"success": False}), 200
+
+        except Exception as e:
+            print("Admin Check Error:", e)
+            return jsonify({"success": False, "message": "server error"}), 500
+
 
     @app.route("/inventory", methods=["GET"])
     def inventory():
