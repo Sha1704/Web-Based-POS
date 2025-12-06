@@ -58,7 +58,7 @@ class Inventory:
                 return False
             
             #add to the database
-            insertQuery = 'INSERT INTO inventory_item (item_name, price, quantity, category) VALUES (%s, %s, %s, %s)'
+            insertQuery = 'INSERT INTO inventory_item (item_name, price, quantity, category_id) VALUES (%s, %s, %s, %s)'
             backend.run_query(insertQuery, (name, price, quantity, category))
             print(f"Added successfully")
             return True
@@ -132,4 +132,13 @@ class Inventory:
             else:
                 return False
         else:
+            return False
+        
+    def delete_item(self, item_id):
+        try:
+            query = "DELETE FROM inventory_item WHERE item_id = %s"
+            result = backend.run_query(query, (item_id,))
+            return bool(result)
+        except Exception as e:
+            print(f"Error deleting item: {e}")
             return False
