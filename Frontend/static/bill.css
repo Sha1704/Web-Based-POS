@@ -1,0 +1,77 @@
+#bill-page {
+    font-family: Arial, sans-serif;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    margin: 0;
+    align-items: flex-start; /* important */
+}
+
+#right-column {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+
+/* Text elements */
+#bill-page h2,
+#bill-page h3,
+#bill-page h4,
+#bill-page p {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Inputs */
+#bill-page input[type="text"],
+#bill-page input[type="number"],
+#bill-page select {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+/* Buttons */
+#bill-page button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+#bill-page button:hover {
+    background-color: #0056b3;
+}
+
+/* Table */
+#bill-page table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    text-align: left;
+}
+
+#bill-page table th,
+#bill-page table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#bill-page table th {
+    background-color: #f2f2f2;
+}
+
+#bill-page #total {
+    margin-top: 15px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 18px;
+}
+
