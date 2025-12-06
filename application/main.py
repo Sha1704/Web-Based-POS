@@ -9,10 +9,11 @@ from Backend.inventory import Inventory as invent
 from Backend.manager import Manager as man
 from Backend.payment import Payment as pay
 from Backend.user_account import Account as acc
-from dotenv import load_dotenv # you have to import dotenv (see dependencies.txt file)
-from flask import jsonify, request, Flask, render_template # for connecting code to backend
+from dotenv import load_dotenv
+from flask import *
 
 app = Flask(__name__, template_folder="../Frontend/HTML", static_folder="../Frontend/static")
+account = acc()
 
 # Loads variables from .env in the current directory
 load_dotenv()
@@ -50,6 +51,28 @@ class main:
                 else:
                     return jsonify({"status": "fail", "message": recived.get("message", "Feedback error")}), 200
         return render_template("settings.html")
+    
+    @app.route("/feedback/get", methods=["GET"])
+    def get_feedback():
+        query = "SELECT feedback_id, message, created_at FROM customer_feedback ORDER BY created_at DESC"
+        result = sql_class.run_query(query)
+        feedback_list = [
+            {"id": r[0], "feedback": r[1], "created_at": str(r[2])} for r in result
+        ] if result else []
+        return jsonify(feedback_list), 200
+
+    @app.route("/feedback/add", methods=["POST"])
+    def add_feedback():
+        data = request.get_json() or {}
+        message = data.get("feedback")
+        
+        if not message:
+            return jsonify({"success": False, "message": "Feedback message is required"}), 400
+
+        query = "INSERT INTO customer_feedback (message, created_at) VALUES (%s, NOW())"
+        new_id = sql_class.run_insert(query, (message,))
+        
+        return jsonify({"success": True, "id": new_id}), 200
 
     @app.route("/admin", methods=["GET"])
     def admin():
@@ -174,48 +197,60 @@ class main:
         items = sql_class.run_query(query)
         return jsonify(items)
 
-    @app.route("/signup")
+    @app.route("/signup", methods=["GET", "POST"])
     def signup():
-        
-        
+        if request.method == "GET":
+            return render_template("signup.html")
+
         data = request.get_json()
-        email = data["signupInfo.email"]
-        password = data["signupInfo.password"]
-        type = data["signupInfo.user_type"]
-        question = data["signupInfo.security_question"]
-        answer =data["signupInfo.security_answer"]
 
-        creatred = account_class.create_account(email, password, type, question, answer)
+        if not data:
+            return jsonify({"error": "No JSON received"}), 400
 
-        if creatred:
-            return render_template ("signup.html")
+        try:
+            email = data["email"]
+            password = data["password"]
+            user_type = data["user_type"]
+            question = data["security_question"]
+            answer = data["security_answer"]
+        except KeyError as e:
+            return jsonify({"error": f"Missing field: {str(e)}"}), 400
+
+        created = account_class.create_account(
+            email,
+            password,
+            user_type,
+            question,
+            answer
+        )
+
+        if created:
+            return jsonify({"message": "Account created successfully"}), 200
         else:
-            return jsonify({"status": "fail", "message": "could not create account"}), 200
+            return jsonify({"error": "Account creation failed"}), 400
         
-    @app.route("/login")
+    @app.route("/login", methods=["GET", "POST"])
     def login():
-        data = request.get_json()
-        email = data["username"]
-        password = data["password"]
+        if request.method == "POST":
+            email = request.form.get("email")
+            password = request.form.get("password")
 
-        logged_in = account_class.log_in(email, password)
+            logged_in = account_class.log_in(email, password)
 
-        if logged_in [0]:
-            return render_template ("login.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not login"}), 200
+            if logged_in[0]:
+                return redirect(url_for("index"))
+            else:
+                return jsonify({"status": "fail", "message": "could not login"}), 401
+
+        return render_template("login.html")
+
         
-
-    @app.route("/settings")
+    @app.route("/logout")
     def logout():
-        logged_out = account_class.log_out()
-
-        if logged_out [0]:
-            return render_template ("settings.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not logout"}), 200
+        account.log_out()
+        return redirect(url_for('login'))
         
-    @app.route("/forgotPassword")
+    @app.route("/forgotPassword", methods=["POST"])
     def reset_password():
         data = request.get_json()
         email = data["email"]
@@ -225,9 +260,10 @@ class main:
         reset = account_class.password_reset(email, password, answer)
 
         if reset:
-            return render_template("forgotPassword.html")
+            return jsonify({"status": "success"})
         else:
-            return jsonify({"status": "fail", "message": "could not reset password"}), 200
+            return jsonify({"status": "fail", "message": "could not reset password"}), 400
+
     
     @app.post("/bill/pay")
     def add_payment_method():

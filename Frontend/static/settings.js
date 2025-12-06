@@ -7,7 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Logout
     // -----------------------------
     logout.addEventListener("click", () => {
-        window.location.href = "../HTML/login.html";
+        const url = logout.dataset.logoutUrl;
+        if (url) {
+            window.location.href = url; // goes to /logout
+        } else {
+            console.error("Logout URL not found!");
+        }
     });
 
     // -----------------------------
