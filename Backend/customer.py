@@ -51,13 +51,10 @@ class Customer:
             if not items:
                 return {"success": False, "message": "No items to order"}
             total_amount = 0
-            # to store (item_id, quantity, price) for insertion
             receipt_items_data = [] 
-            # Check each item
             for item in items:
                 item_name = item["item_name"]
                 quantity = item["quantity"]
-                # Fetch item from inventory
                 db_item = backend.run_query(
                     "SELECT item_id, price, quantity FROM inventory_item WHERE item_name = %s;",
                     (item_name,)
@@ -69,7 +66,6 @@ class Customer:
                     return {"success": False, "message": f"Not enough quantity for '{item_name}'"}
                 total_amount += price * quantity
                 receipt_items_data.append((item_id, quantity, price))
-            # Create a single receipt
             receipt_query = """
                 INSERT INTO receipt (customer_email, total_amount, amount_due, note)
                 VALUES (%s, %s, %s, %s)
@@ -78,16 +74,13 @@ class Customer:
                 receipt_query,
                 (customer_email, total_amount, total_amount, f"Pickup time: {pickup_time}")
             )
-            # Get the newly created receipt_id
             receipt_id = backend.run_query("SELECT LAST_INSERT_ID();")[0][0]
-            # Insert all items in receipt_item
             receipt_item_query = """
                 INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price)
                 VALUES (%s, %s, %s, %s)
             """
             for item_id, qty, price in receipt_items_data:
                 backend.run_query(receipt_item_query, (receipt_id, item_id, qty, price))
-                # Deduct quantity from inventory
                 backend.run_query(
                     "UPDATE inventory_item SET quantity = quantity - %s WHERE item_id = %s",
                     (qty, item_id)
@@ -108,12 +101,10 @@ class Customer:
                 return {"success": False, "message": "Rating must be between 1 and 5"}
             if not backend.run_query("SELECT email FROM customer WHERE email = %s;", (customer_email,)):
                 return {"success": False, "message": "Customer not found"}
-            # get item_id from name
             result = backend.run_query("SELECT item_id FROM inventory_item WHERE item_name = %s;", (item_name,))
             if not result:
                 return {"success": False, "message": "Item not found"}
             item_id = result[0][0]
-            # check if the customer already rated the item
             existing = backend.run_query(
                 "SELECT rating_id FROM item_rating WHERE customer_email = %s AND item_id = %s;", (customer_email,item_id))
             if existing:
@@ -122,7 +113,6 @@ class Customer:
             else:
                 backend.run_query("INSERT INTO item_rating (customer_email, item_id, rating) VALUES (%s, %s, %s);",
                                   (customer_email, item_id, rating))
-            # recalculate the average rating for the item
             average_result = backend.run_query("SELECT AVG(rating) FROM item_rating WHERE item_id = %s;", (item_id,))
             if average_result and average_result[0][0] is not None:
                 avg_rating = float(average_result[0][0])

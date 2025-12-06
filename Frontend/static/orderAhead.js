@@ -1,10 +1,8 @@
-const OA_TAX_RATE = 0.02; // frontend display only
-let backendItems = []; // fetched from backend
-let oaItems = [];      // current order items
+const OA_TAX_RATE = 0.02; 
+let backendItems = []; 
+let oaItems = [];      
 
-// ---------------------------
 // Populate item dropdown
-// ---------------------------
 function oa_populateDropdown(items) {
     const select = document.getElementById("oa-item-select");
     select.innerHTML = `<option value="">-- Select an item --</option>`;
@@ -12,7 +10,7 @@ function oa_populateDropdown(items) {
     items.forEach(item => {
         const opt = document.createElement("option");
         opt.value = item[0]; // id
-        const price = parseFloat(item[3]) || 0; // convert string to number
+        const price = parseFloat(item[3]) || 0; 
         opt.textContent = `${item[1]} - $${price.toFixed(2)}`;
         select.appendChild(opt);
     });
@@ -32,12 +30,9 @@ async function fetchOrderItems() {
 
 window.onload = function () {
     fetchOrderItems();
-    // ...existing code...
 };
 
-// ---------------------------
 // Add item to order
-// ---------------------------
 function oa_addItem() {
     const itemId = document.getElementById("oa-item-select").value;
     const qty = Number(document.getElementById("oa-qty").value);
@@ -46,23 +41,19 @@ function oa_addItem() {
         alert("Choose an item and quantity.");
         return;
     }
-
-    // const item = oaDB.find(f => f.name === itemName);
     const item = backendItems.find(f => f[0] == itemId);
     if (!item) return alert("Item not found.");
 
     oaItems.push({
         item_name: item[1],
         quantity: qty,
-        price: parseFloat(item[3]) || 0  // convert string to number
+        price: parseFloat(item[3]) || 0  
     });
 
     oa_renderOrder();
 }
 
-// ---------------------------
 // Render table + summary
-// ---------------------------
 function oa_renderOrder() {
     const tbody = document.querySelector("#oa-table tbody");
     tbody.innerHTML = "";
@@ -104,9 +95,7 @@ function oa_renderOrder() {
     `;
 }
 
-// ---------------------------
 // Listeners for the stars
-// ---------------------------
 function attachStarListeners(row) {
     const stars = row.querySelectorAll('.item-rating i');
     const itemName = row.querySelector('.item-rating').dataset.item;
@@ -116,21 +105,18 @@ function attachStarListeners(row) {
     stars.forEach(star => {
         const value = parseInt(star.dataset.value);
 
-        // ----- Hover in -----
         star.addEventListener('mouseenter', () => {
             stars.forEach(s => {
                 s.className = parseInt(s.dataset.value) <= value ? 'fa-solid fa-star' : 'fa-regular fa-star';
             });
         });
 
-        // ----- Hover out -----
         star.addEventListener('mouseleave', () => {
             stars.forEach(s => {
                 s.className = parseInt(s.dataset.value) <= selectedRating ? 'fa-solid fa-star' : 'fa-regular fa-star';
             });
         });
 
-        // ----- Click -----
         star.addEventListener('click', async () => {
             selectedRating = value;
 
@@ -138,7 +124,6 @@ function attachStarListeners(row) {
             if (!customerEmail) return alert("Email required to rate item.");
 
             try {
-                // const response = await fetch("http://127.0.0.1:5000/rate", {
                 const response = await fetch("/rate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -151,10 +136,8 @@ function attachStarListeners(row) {
                 const contentType = response.headers.get("content-type") || "";
                 if (contentType.includes("application/json")) {
                     const result = await response.json();
-                    // friendly message
                     alert(result.message || (result.success ? "Rating submitted" : "Rating failed"));
                 } else {
-                    // fallback: server returned HTML or something else
                     const text = await response.text();
                     console.warn("Expected JSON but received:", text);
                     alert("Server returned unexpected response. See console for details.");
@@ -168,9 +151,7 @@ function attachStarListeners(row) {
 }
 
 
-// ---------------------------
 // Visually show stars
-// ---------------------------
 function updateStarsUI(container, rating) {
     container.querySelectorAll('i').forEach(star => {
         star.className = (parseInt(star.dataset.value) <= rating)
@@ -180,9 +161,7 @@ function updateStarsUI(container, rating) {
 }
 
 
-// ---------------------------
 // Submit order to backend
-// ---------------------------
 async function oa_submitOrder() {
     if (oaItems.length === 0) {
         alert("No items in order.");
@@ -191,9 +170,8 @@ async function oa_submitOrder() {
 
     const pickupTime = document.getElementById("oa-pickup-time").value;
 
-    // Build request body EXACTLY how backend expects
     const bodyData = {
-        customer_email: "test@example.com", // later replace with logged-in user
+        customer_email: "test@example.com", 
         items: oaItems.map(i => ({
             item_name: i.item_name,
             quantity: i.quantity

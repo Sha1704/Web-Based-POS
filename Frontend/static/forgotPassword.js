@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let email = "";
     let securityQuestion = "";
 
-    // Step 1: Get Security Question
+    // Get Security Question
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         email = form.querySelector("input[type='email']").value.trim();
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Step 2: Verify Answer & Redirect
+    // Verify Answer & Redirect
     verifyBtn.addEventListener("click", async () => {
         const answer = codeInput.value.trim();
         if (!answer) {

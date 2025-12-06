@@ -32,44 +32,4 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 300);
     });
 
-    // When Backend is finished vv
-
-    // form.addEventListener("submit", async (e) => {
-    //     e.preventDefault();
-
-    //     message.textContent = ""; // Clear old messages
-
-    //     const email = document.getElementById("email").value.trim();
-    //     const password = document.getElementById("password").value;
-
-    //     if (!email || !password) {
-    //         message.textContent = "Please enter both email and password.";
-    //         return;
-    //     }
-
-    //     try {
-    //         const response = await fetch("/login", {
-    //             method: "POST",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify({ email, password }),
-    //         });
-
-    //         const data = await response.json();
-
-    //         if (response.ok) {
-    //             message.style.color = "green";
-    //             message.textContent = "Login successful!";
-    //             setTimeout(() => {
-    //                 window.location.href = "home.html";
-    //             }, 1000);
-    //         } else {
-    //             message.style.color = "red";
-    //             message.textContent = data.error || "Invalid email or password.";
-    //         }
-    //     } catch (err) {
-    //         message.style.color = "red";
-    //         message.textContent = "Network error. Please try again.";
-    //         console.error(err);
-    //     }
-    // });
 });

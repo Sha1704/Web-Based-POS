@@ -91,14 +91,14 @@ class Payment:
         
     def add_item_to_bill(self, receiptID, item_id, quantity, price):
         try:
-            # 1. Check inventory
+            # Check inventory
             query = "SELECT item_id FROM inventory_item WHERE item_id = %s;"
             result = backend.run_query(query, (item_id,))
             if not result:
                 print(f"Item ID '{item_id}' not found in inventory.")
                 return False
 
-            # 2. Check if item already exists on this bill
+            # Check if item already exists on this bill
             query = "SELECT quantity FROM receipt_item WHERE receipt_id = %s AND item_id = %s;"
             result = backend.run_query(query, (receiptID, item_id))
 
@@ -121,8 +121,6 @@ class Payment:
                 """
                 backend.run_query(insert_query, (receiptID, item_id, quantity, price))
                 print(f"Added {quantity} x item {item_id} to receipt {receiptID}.")
-
-            # ⭐⭐⭐ UPDATE RECEIPT TOTALS — PLACE THIS RIGHT HERE ⭐⭐⭐
             update_totals_query = """
                 UPDATE receipt
                 SET total_amount = (
@@ -248,7 +246,7 @@ class Payment:
         if not updated:
             return False
 
-        # If fully refunded → mark officially refunded
+        # If fully refunded, mark officially refunded
         if new_total_due <= 0:
             refund_mark_query = """
                 UPDATE receipt
@@ -265,7 +263,7 @@ class Payment:
         Recalculates subtotal, tax, and amount_due for a receipt.
         """
         try:
-            # 1. Sum all item totals
+            # Sum all item totals
             query = """
                 SELECT 
                     SUM(quantity * item_price) AS subtotal,
@@ -279,7 +277,7 @@ class Payment:
             tax = result[0][1] if result[0][1] else 0
             total = subtotal + tax
 
-            # 2. Update the receipt table
+            # Update the receipt table
             update_query = """
                 UPDATE receipt
                 SET total_amount = %s,

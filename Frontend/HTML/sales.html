@@ -106,7 +106,7 @@
     <script src="../JS/admin.js"></script>
 
     <script>
-        // If admin is NOT unlocked → block access
+        // If admin is NOT unlocked, block access
         if (localStorage.getItem("adminUnlocked") !== "true") {
             alert("Admin access required.");
             window.location.href = "{{ url_for('admin') }}";

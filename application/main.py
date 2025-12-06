@@ -273,13 +273,13 @@ class main:
         payment_type = data.get("payment_type")
         amount = float(data.get("amount"))
 
-        # 1. Record the payment
+        # Record the payment
         payment_added = payment_class.add_payment_method(receipt_id, payment_type, amount)
 
         if not payment_added:
             return jsonify({"success": False})
 
-        # 2. Get current amount_due
+        # Get current amount_due
         query = "SELECT amount_due FROM receipt WHERE receipt_id = %s"
         result = sql_class.run_query(query, (receipt_id,))
 
@@ -289,7 +289,7 @@ class main:
         current_due = float(result[0][0])
         new_due = max(current_due - amount, 0)
 
-        # 3. Update amount_due in receipt
+        # Update amount_due in receipt
         update_query = """
             UPDATE receipt
             SET amount_due = %s,
@@ -437,23 +437,18 @@ class main:
         item_id = request.args.get("id")
         if not item_id:
             return jsonify({"status": "fail", "message": "No item ID provided"}), 400
-
-        # Convert to int safely
+        # Convert to int
         try:
             item_id = int(item_id)
         except ValueError:
             return jsonify({"status": "fail", "message": "Invalid item ID"}), 400
-
-        # Fetch item from your Inventory class
+        # Fetch item from Inventory class
         query = "SELECT i.item_id, i.item_name, i.quantity, i.price, c.category_name AS category " \
                 "FROM inventory_item i LEFT JOIN category c ON i.category_id = c.category_id " \
                 "WHERE i.item_id = %s"
         result = sql_class.run_query(query, (item_id,))
-
         if not result:
             return jsonify({"status": "fail", "message": "Item not found"}), 404
-
-        # result is usually a list of tuples; convert to dict
         item_row = result[0]
         item = {
             "item_id": item_row[0],
@@ -462,15 +457,12 @@ class main:
             "price": item_row[3],
             "category": item_row[4],
         }
-
         return jsonify(item), 200
 
     @app.route("/inventory")
     def find_product():
         name = request.form["inventory-search"]
-
-        found = inventory_class.find_product(name)
-        
+        found = inventory_class.find_product(name)        
         if found:
             return render_template ("inventory.html")
         else:
@@ -479,12 +471,10 @@ class main:
     @app.route("/sales")
     def sales_report(): 
         unlocked = report.form["is_unlocked"]
-
         if unlocked:
             report = manager_class.view_sales_report()
             if report:
-                return render_template ("sales.html")
-        
+                return render_template ("sales.html")        
         return jsonify({"status": "fail", "message": "could not view report"}), 200
 
     @app.route("/orderAhead", methods=["POST"])
@@ -529,10 +519,8 @@ class main:
     def request_maintance():
         data = request.get_json(silent=True) or {}
         message = data.get("message")
-
         if not message:
             return jsonify({"success": False, "message": "Message is required"}), 400
-
         query = "INSERT INTO maintenance (created_at, order_details) VALUES (NOW(), %s)"
         new_id = sql_class.run_insert(query, (message,))
         
@@ -551,7 +539,6 @@ class main:
     @app.route("/rate", methods=["POST"])
     def rate_items():
         try:
-            # Accept either JSON (AJAX) or form data
             if request.is_json:
                 data = request.get_json()
                 customer_email = data.get("customer_email")
@@ -563,7 +550,6 @@ class main:
                 rating = request.form.get("rating")
             if not customer_email or not item_name or not rating:
                 return jsonify({"success": False, "message": "Missing data"}), 400
-            # ensure rating is sent in expected type
             try:
                 rating = int(rating)
             except Exception:
@@ -573,19 +559,15 @@ class main:
                 success = rated.get("success", False)
                 message = rated.get("message", "Rating result")
             else:
-                # if rate_item returns boolean
                 success = bool(rated)
                 message = "Rating submitted" if success else "Rating failed"
             if success:
-                # Return JSON for AJAX clients
                 if request.is_json:
                     return jsonify({"success": True, "message": message}), 200
-                # form submit — show template
                 return render_template("bill.html")
             else:
                 return jsonify({"success": False, "message": message}), 200
         except Exception as e:
-            # log exception server-side if you want: print(e)
             return jsonify({"success": False, "message": str(e)}), 500
         
     @app.route("/settings")

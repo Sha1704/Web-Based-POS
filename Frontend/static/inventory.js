@@ -1,15 +1,11 @@
-// -----------------------------
 // Load inventory items
-// -----------------------------
 async function loadInventory() {
     const res = await fetch("/inventory/items");
     const data = await res.json();
     renderInventory(data);
 }
 
-// -----------------------------
 // Render inventory table rows
-// -----------------------------
 function renderInventory(items) {
     const tbody = document.getElementById("inventory-body");
     tbody.innerHTML = "";
@@ -30,9 +26,7 @@ function renderInventory(items) {
     });
 }
 
-// -----------------------------
 // Search Filter
-// -----------------------------
 document.getElementById("inventory-search").addEventListener("input", async function () {
     const query = this.value.toLowerCase();
 
@@ -48,16 +42,12 @@ document.getElementById("inventory-search").addEventListener("input", async func
     renderInventory(filtered);
 });
 
-// -----------------------------
 // Add product form toggle
-// -----------------------------
 document.getElementById("add-product-btn").addEventListener("click", () => {
     document.getElementById("add-product-form").classList.toggle("d-none");
 });
 
-// -----------------------------
 // Add new product
-// -----------------------------
 document.getElementById("save-new-product").addEventListener("click", async () => {
     const item_name = document.getElementById("new-item-name").value;
     const qty = Number(document.getElementById("new-item-qty").value);
@@ -86,14 +76,11 @@ document.getElementById("save-new-product").addEventListener("click", async () =
     loadInventory();
 });
 
-// -----------------------------
 // Load categories into the dropdown
-// -----------------------------
 async function loadCategories() {
     const res = await fetch("/inventory/categories");
     const categories = await res.json();
 
-    // Populate the dropdown
     const select = document.getElementById("new-item-category");
     select.innerHTML = '<option value="">Please Select Category</option>';
     categories.forEach(cat => {
@@ -103,7 +90,6 @@ async function loadCategories() {
         select.appendChild(opt);
     });
 
-    // Populate the hidden list
     const listDiv = document.getElementById("category-list");
     if (!listDiv) return;
     listDiv.innerHTML = "";
@@ -119,9 +105,7 @@ async function loadCategories() {
 }
 
 
-// -----------------------------
 // Add new category
-// -----------------------------
 document.getElementById("add-category-btn").addEventListener("click", async () => {
     const categoryInput = document.getElementById("new-category-name");
     const categoryValue = categoryInput.value.trim();
@@ -141,7 +125,6 @@ document.getElementById("add-category-btn").addEventListener("click", async () =
         const data = await res.json();
 
         if (res.ok && data.status === "success") {
-            // Reload categories from DB
             await loadCategories();
             categoryInput.value = "";
             alert(`Category "${categoryValue}" added.`);
@@ -154,9 +137,7 @@ document.getElementById("add-category-btn").addEventListener("click", async () =
     }
 });
 
-// -----------------------------
 // Delete category
-// -----------------------------
 async function deleteCategory(categoryId, categoryName) {
     if (!confirm(`Are you sure you want to delete category "${categoryName}"?`)) return;
 
@@ -182,40 +163,34 @@ async function deleteCategory(categoryId, categoryName) {
     }
 }
 
-// -----------------------------
-// Edit item (open modal)
-// -----------------------------
+// Edit item 
 async function editItem(id) {
     const res = await fetch(`/inventory/get?id=${id}`);
     const item = await res.json();
 
-    // Fill form values
     document.getElementById("edit-item-id").value = item.item_id;
     document.getElementById("edit-item-name").value = item.item_name;
     document.getElementById("edit-item-qty").value = item.quantity;
     document.getElementById("edit-item-price").value = item.price;
 
     const categorySelect = document.getElementById("edit-item-category");
-    categorySelect.innerHTML = ""; // Clear existing options
+    categorySelect.innerHTML = ""; 
 
     const categoriesRes = await fetch("/inventory/categories");
     const categories = await categoriesRes.json();
 
     categories.forEach(cat => {
         const option = document.createElement("option");
-        option.value = cat[0]; // category_name
+        option.value = cat[0]; 
         option.textContent = cat[1];
         if (cat[1] === item.category) option.selected = true;
         categorySelect.appendChild(option);
     });
 
-    // Show the form
     document.getElementById("edit-product-form").classList.remove("d-none");
 }
 
-// -----------------------------
 // Save edits
-// -----------------------------
 document.getElementById("save-edit-product").addEventListener("click", async () => {
     const id = document.getElementById("edit-item-id").value;
     const name = document.getElementById("edit-item-name").value.trim();
@@ -249,24 +224,19 @@ document.getElementById("save-edit-product").addEventListener("click", async () 
     }
 });
 
-// -----------------------------
+
 // Cancel edits
-// -----------------------------
 document.getElementById("cancel-edit").addEventListener("click", () => {
     document.getElementById("edit-product-form").classList.add("d-none");
 });
 
-// -----------------------------
 // Manage Categories
-// -----------------------------
 document.getElementById("toggle-category-list").addEventListener("click", () => {
     const listDiv = document.getElementById("category-list");
     listDiv.classList.toggle("d-none");
 });
 
-// -----------------------------
-// Delete item (open modal)
-// -----------------------------
+// Delete item 
 async function deleteItem(id) {
     if (!confirm("Are you sure you want to delete this item?")) return;
 

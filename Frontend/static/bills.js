@@ -9,22 +9,6 @@ async function loadReceipts() {
     }
 }
 
-// function renderReceipts(receipts) {
-//     const tbody = document.getElementById("bills-body");
-//     tbody.innerHTML = "";
-//     receipts.forEach(receipt => {
-//         const tr = document.createElement("tr");
-//         tr.innerHTML = `
-//             <td>${receipt.receipt_id}</td>
-//             <td>${receipt.customer_email}</td>
-//             <td>$${receipt.total_amount.toFixed(2)}</td>
-//             <td>$${receipt.amount_due.toFixed(2)}</td>
-//             <td>${receipt.created_at}</td>
-//             <td>${receipt.note || ""}</td>
-//         `;
-//         tbody.appendChild(tr);
-//     });
-// }
 function renderReceipts(receipts) {
     const tbody = document.getElementById("bills-body");
     tbody.innerHTML = "";
