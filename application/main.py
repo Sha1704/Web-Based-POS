@@ -244,6 +244,26 @@ class main:
 
         return render_template("login.html")
 
+    @app.route("/get-security-question", methods=["POST"])
+    def get_security_question():
+        data = request.get_json() or {}
+        email = data.get("email", "").strip().lower()
+        
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+
+        try:
+            query = "SELECT security_question FROM user WHERE email = %s"
+            result = sql_class.run_query(query, (email,))
+            
+            if result and len(result) > 0:
+                question = result[0][0]
+                return jsonify({"question": question}), 200
+            else:
+                return jsonify({"error": "Email not found"}), 404
+        except Exception as e:
+            print("Error fetching security question:", e)
+            return jsonify({"error": "Server error"}), 500
         
     @app.route("/logout")
     def logout():
