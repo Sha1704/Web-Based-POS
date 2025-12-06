@@ -62,13 +62,14 @@ class Payment:
         eachTotal = total/numPeople
         return eachTotal
 
-    def apply_discounts(self, discount_percent: int, total: float): # Shalom
+    def apply_discounts(self, discount_code: int, total: float): # Shalom
         '''
         get discount percent and total to apply discount to as param
         return new total
         '''
-
-        new_total = total * (1 - discount_percent / 100)
+        query = "SELECT discount_percent FROM discount WHERE discount_code = %s"
+        code = backend.run_query(query, (discount_code,))
+        new_total = total * (1 - code[0] / 100)
         return new_total
 
     def add_tips(self, receiptID, tip_amount): # Dariya
@@ -95,7 +96,7 @@ class Payment:
             result = backend.run_query(query, (item,))
             if not result:
                 print(f"Item '{item}' not found in inventory.")
-                return
+                return False
             item_id = result[0][0] 
 
             query = "SELECT quantity FROM receipt_item WHERE receipt_id = %s AND item_id = %s;"
@@ -107,14 +108,17 @@ class Payment:
                 query = "UPDATE receipt_item SET quantity = %s WHERE receipt_id = %s AND item_id = %s;"
                 backend.run_query(query, (quantity, receiptID, item_id))
                 print(f"Updated {item} quantity to {quantity} for receipt {receiptID}.")
+                return True
             #create item into receipt
             else:
                 query = "INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price) VALUES (%s, %s, %s, %s);"
                 backend.run_query(query, (receiptID, item_id, quantity, price))
                 print(f"Added {quantity} x {item} to receipt {receiptID}.")
+                return True
 
         except Exception as e:
             print(f"Error adding item to SQL: {e}")
+            return False
         
 
     def remove_item_from_bill(self, item_to_remove_id, receipt_id): # Shalom

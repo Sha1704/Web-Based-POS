@@ -30,6 +30,29 @@ function oa_populateDropdown() {
 
 oa_populateDropdown();
 
+// Fetch available items for order ahead
+async function fetchOrderItems() {
+    try {
+        const response = await fetch("/inventory/items");
+        const items = await response.json();
+        const select = document.getElementById("oa-item-select");
+        select.innerHTML = '<option value="">-- Select item --</option>';
+        items.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item.item_id;
+            option.textContent = `${item.item_name} - $${item.price.toFixed(2)}`;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error("Failed to fetch order ahead items", err);
+    }
+}
+
+window.onload = function () {
+    fetchOrderItems();
+    // ...existing code...
+};
+
 // ---------------------------
 // Add item to order
 // ---------------------------
