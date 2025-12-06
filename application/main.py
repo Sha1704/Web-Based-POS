@@ -138,29 +138,29 @@ class main:
     # Flask Route: Getting inventory Items
     # Zoe Steinkoenig
     # 12-05-2025
-    @app.route("/inventory/items", methods=["GET"])
-    def get_inventory_items():
-        try:
-            query = """
-                SELECT 
-                    item_id,
-                    item_name,
-                    price,
-                    quantity,
-                    category_id,
-                    tax_rate,
-                    avg_rating
-                FROM inventory_item;
-            """
+    # @app.route("/inventory/items", methods=["GET"])
+    # def get_inventory_items():
+    #     try:
+    #         query = """
+    #             SELECT 
+    #                 item_id,
+    #                 item_name,
+    #                 price,
+    #                 quantity,
+    #                 category_id,
+    #                 tax_rate,
+    #                 avg_rating
+    #             FROM inventory_item;
+    #         """
 
-            result = sql_class.run_query(query)
+    #         result = sql_class.run_query(query)
 
-            # Return EXACTLY the SQL rows as arrays
-            return jsonify(result if result else [])
+    #         # Return EXACTLY the SQL rows as arrays
+    #         return jsonify(result if result else [])
 
-        except Exception as e:
-            print("Inventory Error:", e)
-            return jsonify([]), 500
+    #     except Exception as e:
+    #         print("Inventory Error:", e)
+    #         return jsonify([]), 500
 
         
     @app.route("/inventory", methods=["GET"])
