@@ -286,20 +286,14 @@ class main:
         name = data["item_name"]
         price = data["price"]
         quantity = data["quantity"]
-        category_name = data["category"]
-
-        # Get category ID
-        cat_row = sql_class.run_query("SELECT category_id FROM category WHERE category_name = %s", (category_name,))
-        if not cat_row:
-            return jsonify({"status": "fail", "message": "Category not found"}), 400
-        category_id = cat_row[0][0]
+        category_id = data["category_id"]
 
         added = inventory_class.add_to_inventory(name, price, quantity, category_id)
+
         if added:
             return jsonify({"status": "success"}), 200
         else:
             return jsonify({"status": "fail", "message": "Could not add item"}), 500
-
 
     @app.route("/inventory/update", methods=["POST"])
     def update_product():

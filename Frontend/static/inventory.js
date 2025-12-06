@@ -59,12 +59,12 @@ document.getElementById("add-product-btn").addEventListener("click", () => {
 // Add new product
 // -----------------------------
 document.getElementById("save-new-product").addEventListener("click", async () => {
-    const name = document.getElementById("new-item-name").value;
+    const item_name = document.getElementById("new-item-name").value;
     const qty = Number(document.getElementById("new-item-qty").value);
     const price = Number(document.getElementById("new-item-price").value);
     const category = document.getElementById("new-item-category").value;
 
-    if (!name || price <= 0 || qty < 0 || !category) {
+    if (!item_name || price <= 0 || qty < 0 || !category) {
         alert("Please fill in all fields correctly.");
         return;
     }
@@ -72,7 +72,7 @@ document.getElementById("save-new-product").addEventListener("click", async () =
     const res = await fetch("/inventory/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, price, quantity: qty, category })
+        body: JSON.stringify({ item_name, price, quantity: qty, category_id: category })
     });
 
     if (!res.ok) {
