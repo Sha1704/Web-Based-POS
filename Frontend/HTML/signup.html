@@ -12,7 +12,7 @@
     <div id="login-container">
         <!--Split for ease of use-->
         <div id="part1">
-            <form id="signup-form-step1">
+            <form id="login-form">
 
                 <label for="email">Email:</label>
                 <input type="text" id="email" name="email" required>
@@ -31,7 +31,7 @@
         </div>
 
         <div id="part2" style="display:none;">
-            <form id="signup-form-step2">
+            <form id="login-form">
                 <label for="user-type">User Type:</label>
                 <select id="user-type" name="user-type" required>
                     <option value="customer" selected>Customer</option>
@@ -58,8 +58,11 @@
             </form>
         </div>
 
-        <p>Already have an account? <a href="login.html">Log in here</a></p>
+        <p>Already have an account? <a href="{{ url_for('login') }}">Log in here</a></p>
+        <!--
+        removing reurn to homepage button
         <button id="home-button">Return to Homepage</button>
+        -->
         <p id="message"></p>
 
         <script src="{{ url_for('static', filename='signup.js') }}"></script>

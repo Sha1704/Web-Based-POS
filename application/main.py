@@ -6,7 +6,7 @@ from Backend.payment import Payment as pay
 from Backend.user_account import Account as acc
 from dotenv import load_dotenv # you have to import dotenv (see dependencies.txt file)
 import os
-from flask import jsonify, request, Flask, render_template # for connecting code to backend
+from flask import * # for connecting code to backend
 
 app = Flask(__name__, template_folder="../Frontend/HTML", static_folder="../Frontend/static")
 
@@ -74,67 +74,73 @@ class main:
     @app.route("/maintenanceRequest", methods=["GET"])
     def maintenance_request():
         return render_template("maintenanceRequest.html")
-
-    @app.route("/forgotPassword", methods=["GET"])
-    def forgot_password():
-        return render_template("forgotPassword.html")
     @app.route("/inventory/items")
     def get_inventory_items():
         items = sql_class.run_query("SELECT item_id, item_name, price, quantity, category_id FROM inventory_item")
         return jsonify(items)
 
-    @app.route("/signup")
+
+    @app.route("/signup", methods=["GET", "POST"])
     def signup():
-        data = request.get_json()
-        email = data["signupInfo.email"]
-        password = data["signupInfo.password"]
-        type = data["signupInfo.user_type"]
-        question = data["signupInfo.security_question"]
-        answer =data["signupInfo.security_answer"]
-
-        creatred = account_class.create_account(email, password, type, question, answer)
-
-        if creatred:
-            return render_template ("signup.html")
+        if request.method == "GET":
+            return render_template("signup.html") 
         else:
-            return jsonify({"status": "fail", "message": "could not create account"}), 200
+            data = request.get_json()
+            email = data["signupInfo.email"]
+            password = data["signupInfo.password"]
+            type = data["signupInfo.user_type"]
+            question = data["signupInfo.security_question"]
+            answer =data["signupInfo.security_answer"]
+
+            creatred = account_class.create_account(email, password, type, question, answer)
+
+            if creatred:
+                return redirect(url_for("login"))
+            else:
+                return render_template("signup.html", error="Could not create account")
         
-    @app.route("/login")
+    @app.route("/login", methods=["GET", "POST"])
     def login():
-        data = request.get_json()
-        email = data["username"]
-        password = data["password"]
-
-        logged_in = account_class.log_in(email, password)
-
-        if logged_in [0]:
-            return render_template ("login.html")
+        if request.method == "GET":
+            return render_template("login.html")
         else:
-            return jsonify({"status": "fail", "message": "could not login"}), 200
+            data = request.get_json()
+            email = data["username"]
+            password = data["password"]
+
+            logged_in = account_class.log_in(email, password)
+
+            if logged_in [0]:
+                return render_template ("login.html")
+            else:
+                return jsonify({"status": "fail", "message": "could not login"}), 400
         
 
-    @app.route("/settings")
+    @app.route("/logout")
     def logout():
         logged_out = account_class.log_out()
 
-        if logged_out [0]:
-            return render_template ("settings.html")
+        if logged_out:
+            return redirect(url_for("login"))
         else:
-            return jsonify({"status": "fail", "message": "could not logout"}), 200
+            return jsonify({"status": "fail", "message": "could not logout"}), 400
         
-    @app.route("/forgotPassword")
-    def reset_password():
-        data = request.get_json()
-        email = data["email"]
-        password = data["newPassword"]
-        answer = data["securityAnswer"]
-
-        reset = account_class.password_reset(email, password, answer)
-
-        if reset:
+    @app.route("/forgotPassword", methods = ["GET", "POST"])
+    def forgot_password():
+        if request.method == "GET":
             return render_template("forgotPassword.html")
         else:
-            return jsonify({"status": "fail", "message": "could not reset password"}), 200
+            data = request.get_json()
+            email = data["email"]
+            password = data["newPassword"]
+            answer = data["securityAnswer"]
+
+            reset = account_class.password_reset(email, password, answer)
+
+            if reset:
+                return render_template("forgotPassword.html")
+            else:
+                return jsonify({"status": "fail", "message": "could not reset password"}), 400
     
     @app.route("/bill")
     def add_payment_method():

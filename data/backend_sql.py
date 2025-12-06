@@ -20,6 +20,8 @@ class Backend:
         self.user = user
         self.password = password
         self.database = database
+        self.data_base = None
+        self.cursor = None
     
     def run_query(self, query:str, params = None): # Shalom
         """
@@ -34,22 +36,19 @@ class Backend:
             - None: If a database or programming error occurs.
         """
 
-        data_base = None
-        cursor = None
-
         try:
             # Connect to the database
-            data_base = mysql.connector.connect(host = self.host, user = self.user, password = self.password, database = self.database)
-            cursor = data_base.cursor()
+            self.data_base = mysql.connector.connect(host = self.host, user = self.user, password = self.password, database = self.database)
+            self.cursor = self.data_base.cursor()
             # Execute query with or without parameters
             if params:
-                cursor.execute(query,params)
+                self.cursor.execute(query,params)
             else:
-                cursor.execute(query)
+                self.cursor.execute(query)
 
             # Handle SELECT queries
             if query.strip().upper().startswith("SELECT"):
-                results = cursor.fetchall()
+                results = self.cursor.fetchall()
                 if results != []:
                     # Return results if found
                     return results
@@ -59,7 +58,7 @@ class Backend:
 
             # Handle INSERT, UPDATE, DELETE queries
             if query.strip().upper().startswith(("INSERT", "UPDATE", "DELETE")):
-                data_base.commit()
+                self.data_base.commit()
                 return True
                 
         except ProgrammingError as pe:
@@ -68,9 +67,14 @@ class Backend:
         except Error as e:
             print(f'An error occured: {e}')
             return None
-        finally:
-            # Clean up database resources
-            if cursor is not None:
-                cursor.close()
-            if data_base is not None and data_base.is_connected():
-                data_base.close()   
+
+    def close_connection(self):
+        """
+        Closes the database connection and cursor if they exist.
+        """
+        if self.cursor is not None:
+            self.cursor.close()
+            self.cursor = None
+        if self.data_base is not None and self.data_base.is_connected():
+            self.data_base.close()
+            self.data_base = None
