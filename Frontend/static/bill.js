@@ -40,7 +40,7 @@ function populateItemSelect(items) {
     items.forEach(item => {
         const option = document.createElement("option");
         option.value = item[0];    // item_id
-        option.textContent = `${item[1]} - $${Number(item[2]).toFixed(2)}`;
+        option.textContent = `${item[1]} - $${Number(item[3]).toFixed(2)}`;
         select.appendChild(option);
     });
 }
