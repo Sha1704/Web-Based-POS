@@ -156,7 +156,7 @@ function attachStarListeners(row) {
             if (!customerEmail) return alert("Email required to rate item.");
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/rate_item", {
+                const response = await fetch("http://127.0.0.1:5000/rate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

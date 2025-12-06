@@ -436,17 +436,25 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not print receipt"}), 200
 
-    @app.route("/rate")
+    @app.route("/rate", methods=["POST"])
     def rate_items():
-        data = request.get_json()
-        customer_email = data["customer_email"]
-        item_name = data["item_name"]
-        rating = data["rating"]
-        rated = customer_class.rate_item(customer_email, item_name, rating)
-        if rated["success"]:
-            return render_template("bill.html")
-        else:
-            return jsonify({"status": "fail", "message": rated["message"]}), 200
+        try:
+            data = request.get_json()
+            customer_email = data.get("customer_email")
+            item_name = data.get("item_name")
+            rating = data.get("rating")
+
+            if not customer_email or not item_name or not rating:
+                return jsonify({"success": False, "message": "Missing data"}), 400
+
+            rated = customer_class.rate_item(customer_email, item_name, rating)
+
+            if rated.get("success"):
+                return jsonify({"success": True, "message": "Rating submitted successfully"}), 200
+            else:
+                return jsonify({"success": False, "message": rated.get("message", "Rating failed")}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
     @app.route("/settings")
     def feedback():
