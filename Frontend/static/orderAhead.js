@@ -8,6 +8,7 @@ const oaDB = [
 ];
 
 let oaItems = [];
+let backendItems = []; 
 const OA_TAX_RATE = 0.02; // frontend display only
 
 // ---------------------------
@@ -35,12 +36,14 @@ async function fetchOrderItems() {
     try {
         const response = await fetch("/inventory/items");
         const items = await response.json();
+        backendItems = items;
         const select = document.getElementById("oa-item-select");
         select.innerHTML = '<option value="">-- Select item --</option>';
         items.forEach(item => {
             const option = document.createElement("option");
-            option.value = item.item_id;
-            option.textContent = `${item.item_name} - $${item.price.toFixed(2)}`;
+            option.value = item[0];
+            const price = item[2] || 0;
+            option.textContent = `${item[1]} - $${price}`;
             select.appendChild(option);
         });
     } catch (err) {
@@ -57,20 +60,23 @@ window.onload = function () {
 // Add item to order
 // ---------------------------
 function oa_addItem() {
-    const itemName = document.getElementById("oa-item-select").value;
+    const itemId = document.getElementById("oa-item-select").value;
     const qty = Number(document.getElementById("oa-qty").value);
 
-    if (!itemName || qty <= 0) {
+    if (!itemId || qty <= 0) {
         alert("Choose an item and quantity.");
         return;
     }
 
-    const item = oaDB.find(f => f.name === itemName);
+    // const item = oaDB.find(f => f.name === itemName);
+    const item = backendItems.find(f => f[0] == itemId);
+    if (!item) return alert("Item not found.");
 
     oaItems.push({
-        item_name: item.name,    // backend field
+        item_name: item[1],    // backend field
         quantity: qty,           // backend field
-        price: item.price        // used for display only
+        // price: item.price        // used for display only
+        price: Number(item[2]) || 0
     });
 
     oa_renderOrder();

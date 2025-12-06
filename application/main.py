@@ -328,18 +328,23 @@ class main:
         
         return jsonify({"status": "fail", "message": "could not view report"}), 200
 
+    @app.route("/orderAhead", methods=["POST"])
+    def orderAhead_submit():
+        try:
+            data = request.get_json()
+            customer_email = data.get("customer_email")
+            items = data.get("items")           # [{item_name, quantity}, ...]
+            note = data.get("note")             # e.g., pickup time
 
-    @app.route("/orderAhead")
-    def orderAhead():
-        item = request.form["oa-item-select"]
-        quantity = request.form["oa-qty"]
-        time = request.form["oa-pickup-time"]
-        ordered = customer_class.order_ahead(item, quantity, time)
+            # If your current `order_ahead` handles only one item, loop through items
+            for item in items:
+                success = customer_class.order_ahead(customer_email, item["item_name"], item["quantity"], note)
+                if not success:
+                    return jsonify({"success": False, "message": f"Failed to add {item['item_name']}"})
 
-        if ordered:
-            return render_template ("orderAhead.html")
-        else:
-            return jsonify({"status": "fail", "message": "could not order ahead"}), 200
+            return jsonify({"success": True, "message": "Order placed!"})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
 
     @app.route("/maintenance")
     def request_maintance():
@@ -402,8 +407,27 @@ class main:
             return render_template("inventory.html")
         else:
             return jsonify({"status": "fail", "message": "could not add item to category"}), 200
+        
+    @app.route("/admin/users", methods=["GET"])
+    def get_admin_users():
+        try:
+            users = sql_class.run_query("SELECT email, user_type, security_question, security_answer FROM user_account")
+            if not users:
+                users = []
+            user_list = [
+                {
+                    "email": u[0],
+                    "user_type": u[1],
+                    "security_question": u[2],
+                    "security_answer": u[3]
+                } for u in users
+            ]
+            return jsonify(user_list)
+        except Exception as e:
+            print("Error fetching admin users:", e)
+            return jsonify({"error": "Failed to fetch users", "details": str(e)}), 500
 
-
+    
 if __name__ == "__main__":
     app.run(debug=True)
 
