@@ -68,7 +68,7 @@ async function addItem() {
     const item = window.inventoryItems.find(f => f[0] === itemID);
     if (!item) return alert("Item not found.");
 
-    const price = Number(item[2]);
+    const price = Number(item[3]);
 
     // --- SEND TO BACKEND ---
     const res = await fetch("/bill/add-item", {
@@ -415,5 +415,4 @@ async function voidTransaction() {
 // Run on page load
 window.onload = function () {
     fetchInventoryItems();
-    loadReceiptFromURL();
 };

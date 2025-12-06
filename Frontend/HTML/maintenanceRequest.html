@@ -19,15 +19,7 @@
     <script src="https://kit.fontawesome.com/3c108498cb.js" crossorigin="anonymous"></script>
 
 </head>
-<header>
-    <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-outline-warning" onclick="window.location.href='maintenanceRequest.html'">
-            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
-            Request Maintenance
-        </button>
-    </div>
 
-</header>
 <body>
 
     <body id="home-page">
@@ -52,8 +44,26 @@
             </nav>
         </div>
 
-        <script src="{{ url_for('static', filename='maintenanceRequest.js') }}"></script>
+        <!-- Main Content -->
+        <div class="main-content">
+            <div id="feedback-section" class="p-3">
+                <h2>Maintenance Request</h2>
 
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="feedbackInput" class="form-label">Problem Description:</label>
+                            <textarea id="feedbackInput" class="form-control" rows="3"
+                                placeholder="Write your maintenance here..."></textarea>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="{{ url_for('static', filename='maintenanceRequest.js') }}"></script>
        
     </body>
 

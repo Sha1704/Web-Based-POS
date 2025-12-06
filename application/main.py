@@ -134,34 +134,6 @@ class main:
         except Exception as e:
             print("Error creating bill:", e)
             return jsonify({"error": str(e)}), 500
-
-    # Flask Route: Getting inventory Items
-    # Zoe Steinkoenig
-    # 12-05-2025
-    # @app.route("/inventory/items", methods=["GET"])
-    # def get_inventory_items():
-    #     try:
-    #         query = """
-    #             SELECT 
-    #                 item_id,
-    #                 item_name,
-    #                 price,
-    #                 quantity,
-    #                 category_id,
-    #                 tax_rate,
-    #                 avg_rating
-    #             FROM inventory_item;
-    #         """
-
-    #         result = sql_class.run_query(query)
-
-    #         # Return EXACTLY the SQL rows as arrays
-    #         return jsonify(result if result else [])
-
-    #     except Exception as e:
-    #         print("Inventory Error:", e)
-    #         return jsonify([]), 500
-
         
     @app.route("/inventory", methods=["GET"])
     def inventory():
@@ -183,10 +155,6 @@ class main:
     @app.route("/sales", methods=["GET"])
     def sales():
         return render_template("sales.html")
-
-    @app.route("/maintenanceRequest", methods=["GET"])
-    def maintenance_request():
-        return render_template("maintenanceRequest.html")
 
     @app.route("/forgotPassword", methods=["GET"])
     def forgot_password():
@@ -348,17 +316,25 @@ class main:
 
         return jsonify({"success": bool(added)})
 
-
     @app.post("/bill/remove-item")
     def remove_item_from_bill():
-        data = request.get_json()
-        receipt_id = data["receipt_id"]
-        line_id = data["item_line_id"]
+        try:
+            data = request.get_json()
 
-        removed = payment_class.remove_item_from_bill(line_id, receipt_id)
+            receipt_id = data["receipt_id"]
+            line_id = data["item_line_id"]
 
-        if removed:
-            payment_class.update_receipt_totals(receipt_id)
+            removed = payment_class.remove_item_from_bill(line_id, receipt_id)
+
+            if removed:
+                payment_class.update_receipt_totals(receipt_id)
+                return jsonify({"success": True}), 200
+            else:
+                return jsonify({"success": False, "message": "Item not removed"}), 400
+
+        except Exception as e:
+            print("REMOVE ITEM ERROR:", e)
+            return jsonify({"success": False, "message": str(e)}), 500
 
     @app.route("/inventory/add", methods=["POST"])
     def add_to_inventory():
@@ -493,16 +469,39 @@ class main:
     def maintenance_request_page():
         return render_template("maintenanceRequest.html")
 
+    @app.route("/maintenance", methods=["GET"])
+    def get_maintenance_requests():
+        query = """
+            SELECT maintenance_id, created_at, order_details AS message
+            FROM maintenance
+            ORDER BY created_at DESC
+        """
+        result = sql_class.run_query(query)
+        return jsonify(result if result else [])
+    
+    @app.route("/maintenance/delete/<int:maintenance_id>", methods=["DELETE"])
+    def delete_maintenance(maintenance_id):
+        try:
+            query = "DELETE FROM maintenance WHERE maintenance_id = %s"
+            sql_class.run_query(query, (maintenance_id,))
+            return jsonify({"success": True}), 200
+        except Exception as e:
+            print("Delete Maintenance Error:", e)
+            return jsonify({"success": False, "message": str(e)}), 500
+
     @app.post("/maintenanceRequest")
     def request_maintance():
         data = request.get_json(silent=True) or {}
-
-        code = data.get("code")
         message = data.get("message")
 
-        requested = manager_class.request_maintance(code, message)
+        if not message:
+            return jsonify({"success": False, "message": "Message is required"}), 400
 
-        return jsonify({"success": bool(requested)})
+        query = "INSERT INTO maintenance (created_at, order_details) VALUES (NOW(), %s)"
+        new_id = sql_class.run_insert(query, (message,))
+        
+        return jsonify({"success": True, "maintenance_id": new_id})
+
 
     @app.route("/bills/print")
     def print_reciepts():
@@ -629,13 +628,3 @@ class main:
     
 if __name__ == "__main__":
     app.run(debug=True)
-
-    # cant find a place to reset password from index.html
-    # cant find where to request refund on frontend
-    # for order ahead - do not need order id and need a way to remove items after adding items
-    # can't find where to update product count
-    # you can request maintance without admin code (should also take message) in frontend and request maintance page is blank
-    # can't find where to print reciept
-    # can't find where to add category or add item to category
-    # item can only be rated on order ahead (maybe seperate page for rate items)
-    # can't find where to update product count or track inventory stock
