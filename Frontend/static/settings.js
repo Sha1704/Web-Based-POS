@@ -3,16 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const feedbackInput = document.getElementById("feedbackInput");
     const feedbackDisplay = document.getElementById("feedbackDisplay");
 
-    // -----------------------------
     // Logout
-    // -----------------------------
     logout.addEventListener("click", () => {
-        window.location.href = "../HTML/login.html";
+        const url = logout.dataset.logoutUrl;
+        if (url) {
+            window.location.href = url;
+        } else {
+            console.error("Logout URL not found!");
+        }
     });
 
-    // -----------------------------
     // Load feedback from backend
-    // -----------------------------
     async function loadFeedback() {
         try {
             const res = await fetch("/feedback/get");
@@ -22,8 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 feedbackDisplay.innerHTML = `<p class="text-muted">No feedback yet.</p>`;
                 return;
             }
-
-            // Render feedback cards
             feedbackDisplay.innerHTML = data.map((fb, index) => `
                 <div class="card mb-2">
                     <div class="card-body p-2">
@@ -39,9 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadFeedback();
 
-    // -----------------------------
     // Submit feedback
-    // -----------------------------
     window.submitFeedback = async function () {
         const feedbackText = feedbackInput.value.trim();
         if (!feedbackText) {
@@ -57,8 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!res.ok) throw new Error("Failed to submit feedback");
-
-            // Reload feedback from backend
             loadFeedback();
 
         } catch (err) {

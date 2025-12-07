@@ -45,7 +45,6 @@ class Payment:
     def split_payment(self, receiptID, numPeople): # Azul
         """asks for the number of people splitting and it checks to see if it's greater than zero.
         then it calculates each persons total and prints it"""        
-        #checks if not zero
         if numPeople <= 0:
             return "Must be higher than zero. Try again. "
 
@@ -62,13 +61,14 @@ class Payment:
         eachTotal = total/numPeople
         return eachTotal
 
-    def apply_discounts(self, discount_percent: int, total: float): # Shalom
+    def apply_discounts(self, discount_code: int, total: float): # Shalom
         '''
         get discount percent and total to apply discount to as param
         return new total
         '''
-
-        new_total = total * (1 - discount_percent / 100)
+        query = "SELECT discount_percent FROM discount WHERE discount_code = %s"
+        code = backend.run_query(query, (discount_code,))
+        new_total = total * (1 - code[0] / 100)
         return new_total
 
     def add_tips(self, receiptID, tip_amount): # Dariya
@@ -87,44 +87,70 @@ class Payment:
         except Exception as e:
             print(f"An error occurred while adding tip: {e}")
             return False
-
-    def add_item_to_bill(self, receiptID, item, price, quantity): # Azul
-        #if item is already on bill, it updates quantity. If not it adds new item
+        
+    def add_item_to_bill(self, receiptID, item_id, quantity, price):
         try:
-            query = "SELECT item_id FROM inventory_item WHERE item = %s;"
-            result = backend.run_query(query, (item,))
+            # Check inventory
+            query = "SELECT item_id FROM inventory_item WHERE item_id = %s;"
+            result = backend.run_query(query, (item_id,))
             if not result:
-                print(f"Item '{item}' not found in inventory.")
-                return
-            item_id = result[0][0] 
+                print(f"Item ID '{item_id}' not found in inventory.")
+                return False
 
+            # Check if item already exists on this bill
             query = "SELECT quantity FROM receipt_item WHERE receipt_id = %s AND item_id = %s;"
             result = backend.run_query(query, (receiptID, item_id))
-            
-            #update quantity in receipt
+
             if result:
-                quantity = result[0][0] + quantity
-                query = "UPDATE receipt_item SET quantity = %s WHERE receipt_id = %s AND item_id = %s;"
-                backend.run_query(query, (quantity, receiptID, item_id))
-                print(f"Updated {item} quantity to {quantity} for receipt {receiptID}.")
-            #create item into receipt
+                # Update quantity
+                new_qty = result[0][0] + quantity
+                update_query = """
+                    UPDATE receipt_item 
+                    SET quantity = %s 
+                    WHERE receipt_id = %s AND item_id = %s;
+                """
+                backend.run_query(update_query, (new_qty, receiptID, item_id))
+                print(f"Updated item {item_id} quantity to {new_qty} for receipt {receiptID}.")
+        
             else:
-                query = "INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price) VALUES (%s, %s, %s, %s);"
-                backend.run_query(query, (receiptID, item_id, quantity, price))
-                print(f"Added {quantity} x {item} to receipt {receiptID}.")
+                # Insert new item
+                insert_query = """
+                    INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price)
+                    VALUES (%s, %s, %s, %s);
+                """
+                backend.run_query(insert_query, (receiptID, item_id, quantity, price))
+                print(f"Added {quantity} x item {item_id} to receipt {receiptID}.")
+            update_totals_query = """
+                UPDATE receipt
+                SET total_amount = (
+                    SELECT COALESCE(SUM(quantity * item_price), 0)
+                    FROM receipt_item
+                    WHERE receipt_id = %s
+                ),
+                amount_due = (
+                    SELECT COALESCE(SUM(quantity * item_price), 0)
+                    FROM receipt_item
+                    WHERE receipt_id = %s
+                )
+                WHERE receipt_id = %s;
+            """
+            backend.run_query(update_totals_query, (receiptID, receiptID, receiptID))
+            print(f"Updated totals for receipt {receiptID}.")
+
+            return True
 
         except Exception as e:
             print(f"Error adding item to SQL: {e}")
-        
-
-    def remove_item_from_bill(self, item_to_remove_id, receipt_id): # Shalom
+            return False
+    
+    def remove_item_from_bill(self, item_line_id, receipt_id): # Shalom
         '''
         run sql query to remove item form receipt item
         '''
         
-        query = 'DELETE FROM receipt_item WHERE item_id = %s and receipt_id = %s'
+        query = 'DELETE FROM receipt_item WHERE item_line_id = %s and receipt_id = %s'
 
-        success = backend.run_query(query, (item_to_remove_id, receipt_id,))
+        success = backend.run_query(query, (item_line_id, receipt_id,))
 
         if success:
             return True
@@ -147,8 +173,14 @@ class Payment:
             if not result or admin_code != result[0][0]:
                 return False
             
-            void_query = "Update transaction SET status = 'Voided' WHERE receipt_id = %s"
+            
+            void_query = """
+                UPDATE receipt 
+                SET amount_due = 0, note = 'Voided' 
+                WHERE receipt_id = %s
+            """
             backend.run_query(void_query, (receiptID,))
+
             return True
         
         except Exception as e:
@@ -189,35 +221,76 @@ class Payment:
             print(f"Error approving void: {e}")
             return False
 
-    def manage_refund(self, admin_code, admin_email, total_due, refund_amount, receipt_id): # Shalom
-        '''
-        get admin code and total due as param
-        if valid
-            approve refund
-                make the total due - original total due in database
-            return true
-        else
-            don't approve refund
-            return flase
-        '''
-        query = 'SELECT admin_code from user where email = %s'
+    def manage_refund(self, admin_code, admin_email, total_due, refund_amount, receipt_id):
+        """
+        Validates admin, applies refund, updates receipt.
+        If receipt becomes fully refunded (<= 0), mark it as 'Refunded'.
+        """
 
+        # Verify admin
+        query = 'SELECT admin_code FROM user WHERE email = %s'
         result = backend.run_query(query, (admin_email,))
 
         if not result or admin_code != result[0][0]:
             return False
-        else:
 
-            new_total_due = total_due - refund_amount
-            note = 'item refunded'
+        # Calculate new amount_due
+        new_total_due = total_due - refund_amount
+        note = 'item refunded'
 
-            update_query = 'UPDATE receipt SET amount_due = %s, note = %s WHERE receipt_id = %s'
+        # Update amount_due
+        update_query = 'UPDATE receipt SET amount_due = %s, note = %s WHERE receipt_id = %s'
+        updated = backend.run_query(update_query, (new_total_due, note, receipt_id))
 
-            updated = backend.run_query(update_query, (new_total_due, note, receipt_id,))
+        if not updated:
+            return False
 
-            if updated:
-                return True
-            else:
-                return False
+        # If fully refunded, mark officially refunded
+        if new_total_due <= 0:
+            refund_mark_query = """
+                UPDATE receipt
+                SET amount_due = 0,
+                    note = 'Refunded'
+                WHERE receipt_id = %s
+            """
+            backend.run_query(refund_mark_query, (receipt_id,))
+
+        return True
+
+    def update_receipt_totals(self, receipt_id):
+        """
+        Recalculates subtotal, tax, and amount_due for a receipt.
+        """
+        try:
+            # Sum all item totals
+            query = """
+                SELECT 
+                    SUM(quantity * item_price) AS subtotal,
+                    SUM(item_tax) AS tax
+                FROM receipt_item
+                WHERE receipt_id = %s
+            """
+            result = backend.run_query(query, (receipt_id,))
+
+            subtotal = result[0][0] if result[0][0] else 0
+            tax = result[0][1] if result[0][1] else 0
+            total = subtotal + tax
+
+            # Update the receipt table
+            update_query = """
+                UPDATE receipt
+                SET total_amount = %s,
+                    amount_due = %s
+                WHERE receipt_id = %s
+            """
+            backend.run_query(update_query, (total, total, receipt_id))
+
+            print(f"Receipt {receipt_id} updated: total={total}, due={total}")
+            return True
+
+        except Exception as e:
+            print("Error in update_receipt_totals:", e)
+            return False
+
             
         

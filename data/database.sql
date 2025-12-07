@@ -11,6 +11,12 @@ CREATE TABLE user (
     PRIMARY KEY (email)
 );
 
+-- category table
+CREATE TABLE category (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(50) UNIQUE NOT NULL
+);
+
 -- Inventory Item table
 CREATE TABLE inventory_item (
     item_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -89,16 +95,10 @@ CREATE TABLE transaction (
 -- Payment Method table (cash, card)
 CREATE TABLE payment_method (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    transaction_id INT NULL,
+    transaction_id INT NOT NULL,
     payment_type VARCHAR (30) NOT NULL, 
     amount DECIMAL (5,2) NOT NULL,
     FOREIGN KEY (transaction_id) REFERENCES transaction(transaction_id)
-);
-
--- category table
-CREATE TABLE category (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(50) UNIQUE NOT NULL
 );
 
 ALTER TABLE user
@@ -136,7 +136,59 @@ CREATE TABLE item_rating(
     FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
         ON DELETE CASCADE,
     UNIQUE KEY unique_rating (customer_email, item_id)
+    );
+
+CREATE TABLE customer_feedback ( 
+    feedback_id INT AUTO_INCREMENT PRIMARY KEY, 
+    message TEXT NOT NULL, 
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 ALTER TABLE inventory_item
 ADD COLUMN avg_rating DECIMAL(3,2) DEFAULT 0.0;
+
+CREATE TABLE discount(
+    discount_percent DECIMAL(5,1) NOT NULL,
+    discount_code VARCHAR(10) PRIMARY KEY
+);
+
+-- Test data for category
+INSERT INTO category (category_name) VALUES ('Drinks'), ('Meals'), ('Sides'), ('Desserts'), ('Deals');
+
+-- Test data for inventory_item
+INSERT INTO inventory_item (item_name, price, quantity, category_id) VALUES
+('Burger', 12.99, 10, 2),
+('Fries', 4.99, 20, 3),
+('Soda', 1.50, 30, 1),
+('Pizza Slice', 5.00, 15, 2),
+('Salad', 5.75, 12, 2);
+
+-- Test data for user
+INSERT INTO user (email, customer_id, password_hash, user_type, security_question, security_answer, admin_code, employee_code)
+VALUES
+('admin@example.com', NULL, 'hashed_admin_pw', 'Admin', 'Favorite color?', 'Blue', 1234, NULL),
+('employee@example.com', NULL, 'hashed_employee_pw', 'Employee', 'Pet name?', 'Rex', NULL, 5678),
+('customer@example.com', 1, 'hashed_customer_pw', 'Customer', 'Birth city?', 'Miami', NULL, NULL);
+
+-- Test data for customer
+INSERT INTO customer (email, points) VALUES ('customer@example.com', 100);
+
+-- Test data for receipt
+INSERT INTO receipt (customer_email, total_amount, amount_due, note) VALUES ('customer@example.com', 20.00, 20.00, 'Test receipt');
+
+-- Test data for receipt_item
+INSERT INTO receipt_item (receipt_id, item_id, quantity, item_price, item_tax) VALUES
+(1, 1, 2, 12.99, 0.26),
+(1, 2, 1, 4.99, 0.10);
+
+-- Test data for transaction
+INSERT INTO transaction (customer_email, total, tip_amount, status) VALUES ('customer@example.com', 20.00, 2.00, 'Active');
+
+-- Test data for payment_method
+INSERT INTO payment_method (transaction_id, payment_type, amount) VALUES (1, 'Cash', 22.00);
+
+-- Test data for customer_feedback
+INSERT INTO customer_feedback (message) VALUES ('Great service!'), ('Loved the burger!');
+
+-- Test data for discount
+INSERT INTO discount (discount_percent, discount_code) VALUES (10.0, 'SAVE10'), (5.0, 'DEAL5');

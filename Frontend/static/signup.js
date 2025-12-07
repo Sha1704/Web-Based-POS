@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.ok) {
                 message.style.color = "green";
                 message.textContent = data.message || "Account created successfully!";
-                setTimeout(() => window.location.href = "../HTML/login.html", 1000);
+                setTimeout(() => window.location.href = "login", 1000);
             } else {
                 message.style.color = "red";
                 message.textContent = data.error || "Signup failed.";

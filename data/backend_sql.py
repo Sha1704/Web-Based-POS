@@ -73,4 +73,57 @@ class Backend:
             if cursor is not None:
                 cursor.close()
             if data_base is not None and data_base.is_connected():
-                data_base.close()   
+                data_base.close()  
+
+    # run_insert() method
+    # Zoe Steinkoenig
+    # Added 12-05-2025
+    def run_insert(self, query: str, params=None):
+        """
+        Executes an INSERT query and returns the newly generated primary key ID.
+
+        :param query: SQL INSERT statement
+        :param params: Optional tuple for parameterized queries
+        :return:
+            - int: last inserted row ID
+            - None: if an error occurs
+        """
+
+        data_base = None
+        cursor = None
+
+        try:
+            # Connect to DB
+            data_base = mysql.connector.connect(
+                host=self.host, 
+                user=self.user, 
+                password=self.password, 
+                database=self.database
+            )
+            cursor = data_base.cursor()
+
+            # Execute the INSERT
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+
+            # Commit the transaction
+            data_base.commit()
+
+            # Get last inserted ID
+            new_id = cursor.lastrowid
+
+            return new_id
+
+        except ProgrammingError as pe:
+            print(f"Programming error: {pe}")
+            return None
+        except Error as e:
+            print(f"Database error: {e}")
+            return None
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if data_base is not None and data_base.is_connected():
+                data_base.close()
