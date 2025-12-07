@@ -48,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Redirect to reset page and store email + answer (e.g., localStorage or query params)
         localStorage.setItem("resetEmail", email);
         localStorage.setItem("securityAnswer", answer);
 

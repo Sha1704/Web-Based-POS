@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (response.redirected) {
-                // Flask redirects on successful login
                 window.location.href = response.url;
                 return;
             }

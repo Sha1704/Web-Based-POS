@@ -178,7 +178,7 @@ function rateBillItem(itemIndex, rating) {
 
 async function removeItem(index) {
     const receiptId = document.getElementById("receipt-id").value;
-    const item = billItems[index];    // item.line_id exists now
+    const item = billItems[index];
 
     const res = await fetch("/bill/remove-item", {
         method: "POST",
@@ -197,7 +197,6 @@ async function removeItem(index) {
         return;
     }
 
-    // Safest: reload from backend so quantities match DB
     loadBill(receiptId);
 }
 

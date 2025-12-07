@@ -293,13 +293,11 @@ class main:
         payment_type = data.get("payment_type")
         amount = float(data.get("amount"))
 
-        # Record the payment
         payment_added = payment_class.add_payment_method(receipt_id, payment_type, amount)
 
         if not payment_added:
             return jsonify({"success": False})
 
-        # Get current amount_due
         query = "SELECT amount_due FROM receipt WHERE receipt_id = %s"
         result = sql_class.run_query(query, (receipt_id,))
 
@@ -309,7 +307,6 @@ class main:
         current_due = float(result[0][0])
         new_due = max(current_due - amount, 0)
 
-        # Update amount_due in receipt
         update_query = """
             UPDATE receipt
             SET amount_due = %s,
@@ -457,12 +454,10 @@ class main:
         item_id = request.args.get("id")
         if not item_id:
             return jsonify({"status": "fail", "message": "No item ID provided"}), 400
-        # Convert to int
         try:
             item_id = int(item_id)
         except ValueError:
             return jsonify({"status": "fail", "message": "Invalid item ID"}), 400
-        # Fetch item from Inventory class
         query = "SELECT i.item_id, i.item_name, i.quantity, i.price, c.category_name AS category " \
                 "FROM inventory_item i LEFT JOIN category c ON i.category_id = c.category_id " \
                 "WHERE i.item_id = %s"

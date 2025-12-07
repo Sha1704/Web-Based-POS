@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (successMsg) successMsg.style.display = unlocked ? "block" : "none";
 });
 
-// Unlock button — safe checks and error handling
+// Unlock button - safe checks and error handling
 window.submitAdminCodeFromPage = async function () {
     const emailInput = document.getElementById("admin-email-input");
     const input = document.getElementById("admin-code-input");
@@ -33,9 +33,6 @@ window.submitAdminCodeFromPage = async function () {
         return;
     }
 
-    // Optional: quick client-side fallback (still do server check)
-    // if (code === ADMIN_CODE) { ... }  // not secure; server must authorize
-
     try {
         const response = await fetch("/api/check-admin", {
             method: "POST",
@@ -43,10 +40,9 @@ window.submitAdminCodeFromPage = async function () {
             body: JSON.stringify({ email, code })
         });
 
-        // if server returns non-JSON or error, handle gracefully
+        // if server returns non-JSON or error
         const result = await response.json().catch(() => ({}));
 
-        // Accept either `success` or `Success` just in case
         const ok = result.success === true || result.Success === true;
 
         if (ok) {

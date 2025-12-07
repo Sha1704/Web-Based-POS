@@ -16,7 +16,7 @@ database = os.getenv("DB_DATABASE")
 backend = sql.Backend(database_host, database_user, database_password, database)
 security = password_security.Security()
 
-# Ensure correct database is used
+# Ensure database is used
 backend.run_query('use web_based_pos;')
 
 class Account:

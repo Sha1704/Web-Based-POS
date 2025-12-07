@@ -1,8 +1,6 @@
-// JS/index.js
-
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Home page loaded");
-      const link = document.querySelector(".sidebar a.active"); // adjust selector as needed
+      const link = document.querySelector(".sidebar a.active");
       if (!link) return;
       const target = link.textContent.trim().toLowerCase();
       const screens = document.querySelectorAll(".screen");

@@ -45,7 +45,6 @@ class Payment:
     def split_payment(self, receiptID, numPeople): # Azul
         """asks for the number of people splitting and it checks to see if it's greater than zero.
         then it calculates each persons total and prints it"""        
-        #checks if not zero
         if numPeople <= 0:
             return "Must be higher than zero. Try again. "
 
