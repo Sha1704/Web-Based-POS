@@ -488,15 +488,6 @@ class main:
         else:
             return jsonify({"status": "fail", "message": "could not find product"}), 200
 
-    @app.route("/sales")
-    def sales_report(): 
-        unlocked = report.form["is_unlocked"]
-        if unlocked:
-            report = manager_class.view_sales_report()
-            if report:
-                return render_template ("sales.html")        
-        return jsonify({"status": "fail", "message": "could not view report"}), 200
-
     @app.route("/orderAhead", methods=["POST"])
     def orderAhead_submit():
         try:
@@ -662,6 +653,31 @@ class main:
         except Exception as e:
             print("Error fetching admin users:", e)
             return jsonify({"error": "Failed to fetch users", "details": str(e)}), 500
+       
+@app.route("/sales/report", methods=["GET"])
+def sales_report_api():
+    try:
+        query = """
+            SELECT receipt_id, customer_email, total_amount, created_at
+            FROM receipt
+            ORDER BY created_at DESC
+        """
+        rows = sql_class.run_query(query) or []
+
+        sales = []
+        for r in rows:
+            sales.append({
+                "receipt_id": int(r[0]),
+                "customer_email": r[1],
+                "total_amount": float(r[2]) if r[2] is not None else 0.0,
+                "created_at": r[3].isoformat() if hasattr(r[3], "isoformat") else str(r[3]),
+            })
+
+        return jsonify(sales), 200
+
+    except Exception as e:
+        print("Sales report API error:", e)
+        return jsonify([]), 500
 
     
 if __name__ == "__main__":
